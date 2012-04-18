@@ -107,4 +107,16 @@ class CssHandler extends Handler{
         
         return $result;
     }
+    
+    /**
+     * (non-PHPdoc)
+     * @see plugins\riCjLoader.Handler::processArray()
+     */
+    public function processArray($files, $type, $loader){    
+        $result = array();
+        foreach ($files as $media => $_files){
+            $result[$media] = $loader->findAssets($_files, $type);  
+        }    
+        return $result;                               
+    }
 }

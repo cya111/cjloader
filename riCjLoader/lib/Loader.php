@@ -19,7 +19,7 @@ class Loader
 {
     protected $template,
     $page_directory = '',
-    $current_page_base = '',
+    $current_page = '',
     $request_type,
     $loaders = array(),
     $files = array(), 
@@ -30,8 +30,7 @@ class Loader
     $options = array(
 		'cdn' => true, 
 		'loaders' => '*', 
-		'status' => true, 
-		'ajax' => false, 
+		'status' => true,  
 		'load_global' => true, 
     	'load_loaders' => true,
 		'load_print' => true, 
@@ -44,8 +43,8 @@ class Loader
 
     function __construct()
     {
-        global $current_page_base, $page_directory, $request_type, $template;
-        if (defined('MINIFY_STATUS')) {
+        global $page_directory, $request_type, $template;
+        /*if (defined('MINIFY_STATUS')) {
             if (MINIFY_STATUS === 'true') {
                 // @todo FIXME we shouldn't set the cache time until a minify file is successfully generated
                 global $db;
@@ -57,7 +56,7 @@ class Loader
                     $this->options['minify_time'] = $now;
                 }
             }
-        }
+        }*/
         $this->template = $template;
         $this->page_directory = $page_directory;
         $this->request_type = $request_type;        
@@ -203,6 +202,9 @@ class Loader
      */
     public function injectAssets(&$content){
         
+        // set the correct base
+        $this->setCurrentPage();
+        
         if($this->get('load_global')) $this->loadGlobal();
         
         if($this->get('load_loaders')) $this->loadLoaders();
@@ -212,7 +214,7 @@ class Loader
                                
                 // we may want to do some caching here
                 
-                $cache = md5(serialize($files));
+                //$cache = md5(serialize($files));
                 
 //                if(($cache_file = Plugin::get('riCache.Cache')->exists($cache_filename)) === false)
 //                    $cache_file = Plugin::get('riCache.Cache')->getRelativePath(Plugin::get('riCache.Cache')->write($cache_filename, '', $inject_content));
@@ -235,6 +237,23 @@ class Loader
         }                      
     }       
     
+    /**
+     * 
+     * This function should return the assets in array format
+     */
+    public function getAssetsArray(){
+        $result = array();
+        foreach ($this->files as $type => $locations){
+            foreach($locations as $location => $files){
+                               
+                // we may want to do some caching here               
+                $result[$location][$type] = $this->getHandler($type)->processArray($files, $type, $this);
+            }
+        }
+        
+        return $result;
+    }
+    
     private function strposArray($haystack, $needles) {
         $pos = false;
         if ( is_array($needles) ) {
@@ -254,7 +273,7 @@ class Loader
         return $pos;
     }     
 
-    private function loadGlobal(){                
+    public function loadGlobal(){                
                 
         /**
          * load all template-specific stylesheets, named like "style*.css", alphabetically
@@ -286,7 +305,7 @@ class Loader
          */
         $manufacturers_id = (isset($_GET['manufacturers_id'])) ? $_GET['manufacturers_id'] : '';
         $tmp_products_id = (isset($_GET['products_id'])) ? (int)$_GET['products_id'] : '';
-        $tmp_pagename = ($this_is_home_page) ? 'index_home' : $this->current_page_base;
+        $tmp_pagename = ($this_is_home_page) ? 'index_home' : $this->current_page;
         $sheets_array = array('/' . $_SESSION['language'] . '_stylesheet',
 								'/' . $tmp_pagename,
 								'/' . $_SESSION['language'] . '_' . $tmp_pagename,
@@ -374,7 +393,7 @@ class Loader
      */
     function getAssetDir($extension, $directory, $template = DIR_WS_TEMPLATE)
     {
-        return $this->template->get_template_dir($extension, $template, $this->current_page_base, $directory);
+        return $this->template->get_template_dir($extension, $template, $this->current_page, $directory);
     }
 
     /**
@@ -463,23 +482,24 @@ class Loader
         }
     }
     
-    function setCurrentPageBase(){
+    function setCurrentPage(){
         if(!$this->get('admin')){
-            global $current_page_base, $this_is_home_page;
+            global $current_page, $this_is_home_page;
+            
             // set current page
             if($this_is_home_page)
-            $this->current_page_base = 'index_home';
-            elseif($current_page_base == 'index'){
+                $this->current_page = 'index_home';
+            elseif($current_page == 'index'){
                 if(isset($_GET['cPath']))
-                $this->current_page_base = 'index_category';
+                    $this->current_page = 'index_category';
                 elseif(isset($_GET['manufacturers_id']))
-                $this->current_page_base = 'index_manufacturer';
+                    $this->current_page = 'index_manufacturer';
             }
             else
-            $this->current_page_base = $current_page_base;
+                $this->current_page = $current_page;
         }
         else{
-            $this->current_page_base = preg_replace('/\.php/','',substr(strrchr($_SERVER['PHP_SELF'],'/'),1),1);
+            $this->current_page = preg_replace('/\.php/','',substr(strrchr($_SERVER['PHP_SELF'],'/'),1),1);
         }
     }
     
@@ -490,14 +510,11 @@ class Loader
         $this->loaders[] = $loaders;
     }
     
-    function loadLoaders()
+    public function loadLoaders()
     {
         global $this_is_home_page, $cPath;
         $template = $this->template;
-        $page_directory = $this->page_directory;
-
-        // set the correct base
-        $this->setCurrentPageBase();
+        $page_directory = $this->page_directory;;
 
         if($this->get('loaders') == '*')
         {
@@ -524,7 +541,7 @@ class Loader
         if((is_array($this->loaders)) && count($this->loaders) > 0)	{
             foreach($this->loaders as $loader){
                 $load = false;
-                if(isset($loader['conditions']['pages']) && (in_array('*', $loader['conditions']['pages']) || in_array($this->current_page_base, $loader['conditions']['pages']))){
+                if(isset($loader['conditions']['pages']) && (in_array('*', $loader['conditions']['pages']) || in_array($this->current_page, $loader['conditions']['pages']))){
                     $load = true;
                 }
                 else{                    
@@ -537,6 +554,8 @@ class Loader
                         else $load = $function();                        
                     }
                 }
+                
+                // do we satistfy al the conditions to load?
                 if($load){
                     $files = array();
                     if(isset($loader['libs'])){                        
@@ -556,7 +575,6 @@ class Loader
                             $files[$key] = array('type' => 'css');
                         }                        
                     }    
-
                     $this->load($files, 'footer');
                 }
             }            

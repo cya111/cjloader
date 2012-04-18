@@ -119,6 +119,17 @@ abstract class Handler{
     
     /**
      * 
+     * Outputing as array 
+     * @param array $files
+     * @param string $type
+     * @param object Loader $loader
+     */
+    public function processArray($files, $type, $loader){        
+        return $loader->findAssets($files, $type);                               
+    }
+    
+    /**
+     * 
      * This function assits in caching the loaded content into a file to be able to serve from content different than 
      * the file original location
      * @param string $inject_content
