@@ -59,13 +59,15 @@ abstract class Handler{
      */
     public function process($files, $type, $loader){
         $files = $loader->findAssets($files, $type);
+
+        $to_load = array();
                 
         ob_start();
         foreach($files as $file){
             // the file is external file or minify is off
             if(!$loader->get('minify') || $file['external']){
                 // if the inject content is not empty, we should push it into 1 file to cache
-                if(($cache_file = $this->cache($inject_content, $filesrcs)) !== false){
+                if(($cache_file = $this->cache($to_load)) !== false){
                     echo sprintf($this->file_pattern, $cache_file);
                 }
 
@@ -76,7 +78,7 @@ abstract class Handler{
                 $file_info = $loader->getLoadedFile($file['src']);
                 // the file is php file and needs to be included
                 if($ext == 'php') {
-                    if(($cache_file = $this->cache($inject_content, $filesrcs)) !== false){
+                    if(($cache_file = $this->cache($to_load)) !== false){
                         echo sprintf($this->file_pattern, $cache_file);
                     }
                     //ob_start();
@@ -87,7 +89,7 @@ abstract class Handler{
                 }
                 elseif(isset($file_info['options']['inline'])){
 
-                    if(($cache_file = $this->cache($inject_content, $filesrcs)) !== false){
+                    if(($cache_file = $this->cache($to_load)) !== false){
                         echo sprintf($this->file_pattern, $cache_file);
                     }
 
@@ -97,17 +99,13 @@ abstract class Handler{
 
                 // minify
                 else {
-                    ob_start();
-                    echo Plugin::get('riCjLoader.MinifyFilter')->filter($file['src']);
-                    $inject_content .= ob_get_contents();
-                    ob_end_clean();
-                    $filesrcs .= $file['src'];
+                	$to_load[] = $file['src'];                    
                 }
             }
             
         }
 
-        if(($cache_file = $this->cache($inject_content, $filesrcs)) !== false){
+        if(($cache_file = $this->cache($to_load)) !== false){
             echo sprintf($this->file_pattern, $cache_file);
         }
 
@@ -136,19 +134,20 @@ abstract class Handler{
      * @param string $filesrcs
      * @param string $type
      */
-    protected function cache(&$inject_content, &$filesrcs){        
+    protected function cache(&$to_load){        
         $cache_file = false;
-        if(!empty($inject_content)){
-            $cache_filename = md5($filesrcs) . '.' . $this->extension; 
+        if(!empty($to_load)){        	
+        	            
+            $cache_filename = md5(serialize($to_load)) . '.' . $this->extension; 
             
-            if(($cache_file = Plugin::get('riCache.Cache')->exists($cache_filename, 'cjloader')) === false)
-                $cache_file = Plugin::get('riCache.Cache')->getRelativePath(Plugin::get('riCache.Cache')->write($cache_filename, 'cjloader', $inject_content));
-            
-            if($cache_file !== false){
-                $cache_file = Plugin::get('riCache.Cache')->getRelativePath($cache_file);                    
-                printf($link_form, $cache_file);
-            }
-            $filesrcs = $inject_content = '';
+            if(($cache_file = Plugin::get('riCache.Cache')->exists($cache_filename, 'cjloader')) === false){
+                $cache_file = Plugin::get('riCache.Cache')->write($cache_filename, 'cjloader', Plugin::get('riCjLoader.MinifyFilter')->filter($to_load));
+            }    
+
+            if($cache_file !== false)
+            	$cache_file = Plugin::get('riCache.Cache')->getRelativePath($cache_file);
+            	
+            $to_load = array();           
         }
         return $cache_file;
     }

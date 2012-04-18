@@ -51,14 +51,14 @@ class CssHandler extends Handler{
         ob_start();
         foreach ($files as $media => $_files){
             $_files = $loader->findAssets($_files, $type);  
-            $filesrcs = $inject_content = '';   
+            $to_load = array();   
                      
             foreach($_files as $file){                
                  
                 // the file is external file or minify is off
                 if(!$loader->get('minify') || $file['external']){
                     // if the inject content is not empty, we should push it into 1 file to cache
-                    if(($cache_file = $this->cache($inject_content, $filesrcs)) !== false){
+                    if(($cache_file = $this->cache($to_load)) !== false){
                         echo sprintf($this->file_pattern, $media, $cache_file);
                     }
                     echo sprintf($this->file_pattern, $media, $file['src']);                                            
@@ -68,7 +68,7 @@ class CssHandler extends Handler{
                     $file_info = $loader->getLoadedFile($file['src']);
                     // the file is php file and needs to be included
                     if($ext == 'php') {
-                        if(($cache_file = $this->cache($inject_content, $filesrcs)) !== false){                                      
+                        if(($cache_file = $this->cache($to_load)) !== false){                                      
                             echo sprintf($this->file_pattern, $media, $cache_file);                            
                         }
                         //ob_start();
@@ -79,7 +79,7 @@ class CssHandler extends Handler{
                     }
                     elseif(isset($file_info['options']['inline'])){
                         
-                        if(($cache_file = $this->cache($inject_content, $filesrcs)) !== false){                                      
+                        if(($cache_file = $this->cache($to_load)) !== false){                                      
                             echo sprintf($this->file_pattern, $media, $cache_file);                            
                         }
                         
@@ -88,16 +88,12 @@ class CssHandler extends Handler{
                     }
                     // minify
                     else {
-                        ob_start();
-                        echo Plugin::get('riCjLoader.MinifyFilter')->filter($file['src']);  
-                        $inject_content .= ob_get_contents();                                             
-                        ob_end_clean();  
-                        $filesrcs .= $file['src'];            
+                        $to_load[] = $file['src'];        
                     }
                 }                                    
             }
 
-            if(($cache_file = $this->cache($inject_content, $filesrcs)) !== false){                                      
+            if(($cache_file = $this->cache($to_load)) !== false){                                      
                 echo sprintf($this->file_pattern, $media, $cache_file);                            
             }                                    
         }
