@@ -1,5 +1,9 @@
 This module was initially written to make working with Ajax on Zencart much easier. 
 
-We decided to release it to the wild in hope that people can make use of it, fork it, improve it, or report bugs and issues as well as features they want
+We decided to release it to the wild in hope that people can make use of it, fork it, improve it, or report bugs and issues as well as features they want.
+This specific branch (framework version) is to be used ONLY with our Plugin Framework For Zencart (ZePLUF) which can gotten from:
+https://github.com/yellow1912/ZenCartPluginFramework
 
 The document is next to nothing for now, but we will try to work on it, feel free to send us questions via our contact form at rubikintegration.com  
+
+If you like our work, and you have a blog or a website please mention about us and give us a link back to http://rubikintegration.com
