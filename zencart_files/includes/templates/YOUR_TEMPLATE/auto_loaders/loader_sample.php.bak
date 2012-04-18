@@ -30,7 +30,7 @@ $loaders[] = array(
 			'call_backs' => array('is_logged_in','class_name,method_name') // the loader will attempt to call these functions to check if the css/js files should be loaded
 			),
      	'libs' => array(
-     		'jquery' => array('min' => '1.4.2', 'max' => 1.4.2)
+     		'jquery' => array('min' => '1.4.2', 'max' => '1.4.2')
      		),
         // the "key" of this associate array is the "path" which is relative to the css or jscript folder
     	// the "value" is the order the file should be loaded

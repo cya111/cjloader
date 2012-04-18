@@ -21,7 +21,7 @@ class RiCjLoaderPlugin
 	protected $libs;
 	protected $loaders = array();
 	protected $options = array(
-		'cdn' => false, 
+		'cdn' => true, 
 		'admin' => false, 
 		'loaders' => '*', 
 		'status' => true, 
