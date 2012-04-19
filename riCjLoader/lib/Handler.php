@@ -144,9 +144,11 @@ abstract class Handler{
                 $cache_file = Plugin::get('riCache.Cache')->write($cache_filename, 'cjloader', Plugin::get('riCjLoader.MinifyFilter')->filter($to_load));
             }    
 
-            if($cache_file !== false)
-            	$cache_file = Plugin::get('riCache.Cache')->getRelativePath($cache_file);
-            	
+            if($cache_file !== false){
+	            // temp hack for admin support
+            	$cache_file = Plugin::get('riCache.Cache')->getRelativePath(IS_ADMIN_FLAG ? DIR_FS_ADMIN : DIR_FS_CATALOG, $cache_file);
+            }
+            
             $to_load = array();           
         }
         return $cache_file;

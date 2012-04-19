@@ -47,7 +47,7 @@ class CssHandler extends Handler{
      * @see plugins\riCjLoader.Handler::process()
      */
     public function process($files, $type, $loader){
-                        
+                       
         ob_start();
         foreach ($files as $media => $_files){
             $_files = $loader->findAssets($_files, $type);  
@@ -60,7 +60,7 @@ class CssHandler extends Handler{
                     // if the inject content is not empty, we should push it into 1 file to cache
                     if(($cache_file = $this->cache($to_load)) !== false){
                         echo sprintf($this->file_pattern, $media, $cache_file);
-                    }
+                    } 
                     echo sprintf($this->file_pattern, $media, $file['src']);                                            
                 }
                 else{

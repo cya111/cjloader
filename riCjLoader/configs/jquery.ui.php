@@ -4,7 +4,7 @@ $libs['jquery.ui'] = array(
 	'1.8.16' => array(
 		'jscript_files' => array(
 			'ui.js' => array(
-				'local' => 'ui.js', //if not set, we will use the key name '1.4.2.js' 
+				'local' => 'ui.js', 
 				'cdn' => array(
 					'http' => 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js', 
 					'https' => 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js'
@@ -13,7 +13,7 @@ $libs['jquery.ui'] = array(
 		),
 		'css_files' => array(
 			'ui.css' => array(
-				'local' => 'ui.js', //if not set, we will use the key name '1.4.2.js' 
+				'local' => 'ui.css', 
 				'cdn' => array(
 					'http' => 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css', 
 					'https' => 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css'

@@ -18,7 +18,7 @@ use plugins\riPlugin\Plugin;
 class Loader
 {
     protected $template,
-    $page_directory = '',
+    $page_directory = '',    
     $current_page = '',
     $request_type,
     $loaders = array(),
@@ -59,7 +59,12 @@ class Loader
         }*/
         $this->template = $template;
         $this->page_directory = $page_directory;
-        $this->request_type = $request_type;        
+        $this->request_type = $request_type;      
+
+        // temp hack for admin support
+        if(IS_ADMIN_FLAG){
+        	
+        }
     }    
 
     function set($options){
@@ -80,6 +85,8 @@ class Loader
      */
     function load($files, $location = ''){
 
+    	$files = (array)$files;
+    	
         $previous_files = array();
         // rather costly operation here but we need to determine the location
         if(empty($location))
@@ -132,12 +139,12 @@ class Loader
                                 {
                                     if($this->get('cdn') && isset($css_file_options['cdn'])){
                                         $file = $this->request_type == 'NONSSL' ? $css_file_options['cdn']['http'] : $css_file_options['cdn']['https'];
-                                        $this->_load($previous_files, $file, $location, array('type' => 'css'));                                    
+                                        $this->_load($previous_files, $file, $location, array('type' => 'css'));                          
                                     }
                                     else
                                     {
-                                        $file = !empty($css_file_options['local']) ? $css_file_options['local'] : $css_file;
-                                        $this->_load($previous_files, 'libs/' . $lib . '/' . $lib_version . '/' . $file, $location, array('type' => 'css'));
+                                        $file = __DIR__ . '/../content/resources/' . $lib . '/' . $lib_version . '/' . (!empty($css_file_options['local']) ? $css_file_options['local'] : $css_file);
+                                        $this->_load($previous_files, $file, $location, array('type' => 'css'));
                                     }
                                 }
 
@@ -150,8 +157,8 @@ class Loader
                                     }
                                     else
                                     {
-                                        $file = !empty($jscript_file_options['local']) ? $jscript_file_options['local'] : $jscript_file;
-                                        $this->_load($previous_files, 'libs/' . $lib . '/' . $lib_version . '/' . $file, $location, array('type' => 'jscript'));
+                                        $file = __DIR__ . '/../content/resources/' . $lib . '/' . $lib_version . '/' . (!empty($jscript_file_options['local']) ? $jscript_file_options['local'] : $jscript_file);
+                                        $this->_load($previous_files, $file, $location, array('type' => 'jscript'));
                                     }
                                 }
                         }
@@ -162,7 +169,7 @@ class Loader
                     break;
             }
         }
-         
+        
         // now we will have to echo out the string to be replaced here
         if($location != 'header' && $location != 'footer')
         echo  '<!-- ' . $location . ' -->';
@@ -208,7 +215,7 @@ class Loader
         if($this->get('load_global')) $this->loadGlobal();
         
         if($this->get('load_loaders')) $this->loadLoaders();
-        
+ 
         foreach ($this->files as $type => $locations){
             foreach($locations as $location => $files){
                                
@@ -431,8 +438,14 @@ class Loader
         foreach ($files as $file) {
             $error = false; $include = false; $external = false;
             $options = array();
+            // plugin?
+            if(strpos($file, '::') !== false){
+            	$file = explode('::', $file);
+            	if(!file_exists($path = DIR_FS_CATALOG . 'plugins/' . $file[0] . '/content/resources/' . $file[1]))
+            		$error = true;
+            }
             // inline?
-            if(!empty($this->loaded_files[$file]['options']['inline'])){
+            elseif(!empty($this->loaded_files[$file]['options']['inline'])){
                 $path = $file;
             }
             else{
