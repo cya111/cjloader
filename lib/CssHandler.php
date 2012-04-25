@@ -19,26 +19,28 @@ class CssHandler extends Handler{
         // is this file loaded?
         if(!array_key_exists($file, $loaded_files)){
 
-            $files['css'][$location][$options['media']][] = $file;
-
-            $loaded_files[$file] = array('location' => $location, 'options' => $options);
+            $files['css'][$location][$options['media']][] = $file;    
+            // update the location of the loaded files
+        	$loaded_files[$file] = array('location' => $location, 'options' => $options);        
         }
         elseif(isset($previous_files['css'])){
             $to_be_re_add = array();
             // a very special case, we need to traverse back
             foreach($previous_files['css'] as $previous_file){
-                $to_be_re_add[] = $previous_file['css'];
+                $to_be_re_add[] = $previous_file['file'];
 
-                // remove from the files array
-                unset($files['css'][$location][$previous_file['css']][array_search($previous_file['file'], $files['css'][$location][$previous_file['css'][$options['media']]])]);
-                // re-add at the better location
+                // remove from the files array                            
+                unset($files['css'][$previous_file['location']][array_search($previous_file['file'], $files['css'][$previous_file['location']][$options['media']])]);
 
                 // update the location of the loaded files
-                $loaded_files[$previous_file['css']][$options['media']] = $loaded_files[$file]['location'];
+                $loaded_files[$previous_file['file']]['location'] = $loaded_files[$file]['location'];
             }
-
-            array_splice($files['css'][$location][$loaded_files[$file]['location']], array_search($file, $files['css'][$loaded_files[$file]['location']]), 0, $to_be_re_add);
+			// re-add at the better location  
+            array_splice($files['css'][$location][$options['media']], array_search($file, $files['css'][$loaded_files[$file]['location']][$options['media']]), 0, $to_be_re_add);
         }
+        
+        
+        
         $previous_files['css'][] = array('file' => $file, 'location' => $location);
     }
 

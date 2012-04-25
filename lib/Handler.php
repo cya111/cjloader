@@ -65,7 +65,7 @@ abstract class Handler{
         ob_start();
         foreach($files as $file){
             // the file is external file or minify is off
-            if(!$loader->get('minify') || $file['external']){
+            if($file['external']){
                 // if the inject content is not empty, we should push it into 1 file to cache
                 if(($cache_file = $this->cache($to_load)) !== false){
                     echo sprintf($this->file_pattern, $cache_file);
@@ -101,8 +101,7 @@ abstract class Handler{
                 else {
                 	$to_load[] = $file['src'];                    
                 }
-            }
-            
+            }            
         }
 
         if(($cache_file = $this->cache($to_load)) !== false){
@@ -141,6 +140,7 @@ abstract class Handler{
             $cache_filename = md5(serialize($to_load)) . '.' . $this->extension; 
             
             if(($cache_file = Plugin::get('riCache.Cache')->exists($cache_filename, 'cjloader')) === false){
+            	// Todo: what to do if we do not turn on the minify?
                 $cache_file = Plugin::get('riCache.Cache')->write($cache_filename, 'cjloader', Plugin::get('riCjLoader.MinifyFilter')->filter($to_load));
             }    
 
