@@ -146,12 +146,20 @@ class Loader
 
 	private function processFiles($content){
 		// scan the content to find out the real order of the loader
+		$ordered_files = array();
+	    
+		if(isset($this->files['header']))
+		    $ordered_files['header'] = $this->files['header'];
+		    
 		preg_match_all("/(<!-- ricjloader:)(.*?)(-->)/", $content, $matches, PREG_SET_ORDER);
 		foreach ($matches as $val) {
 			if(isset($this->files[(int)$val[2]]))
 			$ordered_files[(int)$val[2]] = $this->files[(int)$val[2]];
 		}
 
+		if(isset($this->files['footer']))
+		    $ordered_files['footer'] = $this->files['footer'];
+		        
 		// now we loop thru the $ordered_files to make sure each file is loaded only once
 		$loaded_files = $to_load = array();
 		foreach ($ordered_files as $location => $files){
@@ -296,25 +304,25 @@ class Loader
 		/**
 		 * load all template-specific stylesheets, named like "style*.css", alphabetically
 		 */
-		$files = $this->findAssetsByPattern('.css', 'css', '/^style/');
+		$files = $this->findAssetsByPattern('.css', 'css', 'css', '/^style/');
 		$this->load($files, 'header');
 
 		/**
 		 * load all template-specific stylesheets, named like "style*.php", alphabetically
 		 */
-		$files = $this->findAssetsByPattern('.php', 'css', '/^style/');
+		$files = $this->findAssetsByPattern('.php', 'css', 'css', '/^style/');
 		$this->load($files, 'header');
 
 		/**
 		 * load all site-wide jscript_*.js files from includes/templates/YOURTEMPLATE/jscript, alphabetically
 		 */
-		$files = $this->findAssetsByPattern('.js', 'jscript', '/^jscript_/');
+		$files = $this->findAssetsByPattern('.js', 'jscript', 'js', '/^jscript_/');
 		$this->load($files, 'footer');
 
 		/**
 		 * include content from all site-wide jscript_*.php files from includes/templates/YOURTEMPLATE/jscript, alphabetically.
 		 */
-		$files = $this->findAssetsByPattern('.php', 'jscript', '/^jscript_/');
+		$files = $this->findAssetsByPattern('.php', 'jscript', 'js', '/^jscript_/');
 		$this->load($files, 'footer');
 
 		/**
@@ -354,7 +362,7 @@ class Loader
 		 * load printer-friendly stylesheets -- named like "print*.css", alphabetically
 		 */
 		//if($this->get('load_print')) {
-		$directory_array = $this->findAssetsByPattern('.css','css', '/^print/');
+		$directory_array = $this->findAssetsByPattern('.css', 'css', 'css', '/^print/');
 		// TODO: custom processing this
 		foreach ($directory_array as $key => $value) {
 			$this->load(array($key => array('type' => 'css', 'media' => 'print')), 'header');
@@ -420,7 +428,7 @@ class Loader
 	 * @param string extension - file extension to look for
 	 * @param directory - subdirectory of the template containing the assets
 	 */
-	function findAssetsByPattern($extension, $directory, $file_pattern = '')
+	function findAssetsByPattern($extension, $directory, $type, $file_pattern = '')
 	{
 		$templateDir = $this->getAssetDir($extension, $directory, DIR_WS_TEMPLATE);
 		$allFiles = $this->template->get_template_part($templateDir, $file_pattern, $extension);
@@ -434,7 +442,7 @@ class Loader
 		foreach ($allFiles as $file) {
 			// case 1: file is in server but full path not passed, assuming it is under corresponding template css/js folder
 			if(file_exists(DIR_FS_CATALOG.DIR_WS_TEMPLATE.$directory.'/'.$file)){
-				$files[DIR_WS_TEMPLATE.$directory.'/'.$file] = array('type' => $directory);
+				$files[DIR_WS_TEMPLATE.$directory.'/'.$file] = array('type' => $type);
 			}
 			elseif ($this->get('inheritance') != '' && file_exists(DIR_FS_CATALOG.DIR_WS_TEMPLATES.$this->get('inheritance').'/'.$directory.'/'.$file)){
 				$files[DIR_WS_TEMPLATES.$this->get('inheritance').'/'.$directory.'/'.$file] = array('type' => $directory);
