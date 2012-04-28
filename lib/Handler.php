@@ -5,7 +5,7 @@ use plugins\riPlugin\Plugin;
 
 abstract class Handler{
     
-    protected $file_pattern = '', $extension = '';
+    protected $file_pattern = '', $extension = '', $template_base_dir = '';
     /**
      * 
      * This function is responsible for loading the files into the array for later parsing
@@ -17,37 +17,12 @@ abstract class Handler{
      * @param string $location
      * @param array $options
      */
-    public function load(&$files, &$loaded_files, &$previous_files, $type, $file, $location, $options){
-
-        if(!array_key_exists($file, $loaded_files)){            
-            if(isset($files[$type][$location]) && isset($previous_file[$type]))   {             
-                $latest_file = end($previous_file[$type]);           
-                array_splice( $files[$type][$location], array_search($latest_file['file'], $files[$type][$location]) + 1, 0, $file);
-            }
-            else 
-                $files[$type][$location][] = $file;
-            
-            $loaded_files[$file] = array('location' => $location, 'options' => $options);            
-        }
-        elseif(isset($previous_files[$type])){
-            $to_be_re_add = array();
-            // a very special case, we need to traverse back            
-            foreach($previous_files[$type] as $previous_file){
-                $to_be_re_add[] = $previous_file['file'];
-                
-                // remove from the files array
-                unset($files[$type][$previous_file['location']][array_search($previous_file['file'], $files[$type][$previous_file['location']])]); 
-                // re-add at the better location
-                
-                // update the location of the loaded files
-                $loaded_files[$previous_file['file']]['location'] = $loaded_files[$file]['location'];
-            }
+    public function load(&$files, $file, $location, $options){                   
+    	$files[$options['type']][$location][$file] = $options;         
+    }
     
-            array_splice($files[$type][$loaded_files[$file]['location']], array_search($file, $files[$type][$loaded_files[$file]['location']]), 0, $to_be_re_add);
-            
-        }
-        
-        $previous_files[$type][] = array('file' => $file, 'location' => $location);
+    public function getTemplateBaseDir(){
+    	return $this->template_base_dir;
     }
 
     /**
@@ -57,49 +32,41 @@ abstract class Handler{
      * @param string $type
      * @param object Loader $loader
      */
-    public function process($files, $type, $loader){
+    public function process($files, $loader){
         $files = $loader->findAssets($files, $type);
 
         $to_load = array();
                 
         ob_start();
-        foreach($files as $file){
+        foreach($files as $file => $options){
             // the file is external file or minify is off
-            if($file['external']){
+            if($options['external']){
                 // if the inject content is not empty, we should push it into 1 file to cache
                 if(($cache_file = $this->cache($to_load)) !== false){
                     echo sprintf($this->file_pattern, $cache_file);
                 }
 
-                echo sprintf($this->file_pattern, $file['src']);                
+                echo sprintf($this->file_pattern, $file);                
             }
-            else{
-                $ext = pathinfo($file['src'], PATHINFO_EXTENSION);
-                $file_info = $loader->getLoadedFile($file['src']);
+            else{                
                 // the file is php file and needs to be included
-                if($ext == 'php') {
+                if($options['ext'] == 'php') {
                     if(($cache_file = $this->cache($to_load)) !== false){
                         echo sprintf($this->file_pattern, $cache_file);
                     }
-                    //ob_start();
-                    include($file['src']);
-                    //$inject_content .= ob_get_contents();
-                    //ob_end_clean();
-                    //$filesrcs .= $file['src'];
+                    include($file);      
                 }
-                elseif(isset($file_info['options']['inline'])){
+                elseif(isset($options['inline'])){
 
                     if(($cache_file = $this->cache($to_load)) !== false){
                         echo sprintf($this->file_pattern, $cache_file);
                     }
-
-                    echo $file_info['options']['inline'];
-
+                    echo $options['inline'];
                 }                
 
                 // minify
                 else {
-                	$to_load[] = $file['src'];                    
+                	$to_load[] = $file;                    
                 }
             }            
         }
@@ -108,8 +75,7 @@ abstract class Handler{
             echo sprintf($this->file_pattern, $cache_file);
         }
 
-        $result = ob_get_contents();
-        ob_end_clean();
+        $result = ob_get_clean();        
         
         return $result;
     }

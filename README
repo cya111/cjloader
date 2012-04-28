@@ -8,4 +8,15 @@ The document is next to nothing for now, but we will try to work on it, feel fre
 
 If you like our work, and you have a blog or a website please mention about us and give us a link back to http://rubikintegration.com
 
-Make sure you place all the files/folders inside zencart-root/plugins/riCjLoader/
+Make sure you place all the files/folders inside zencart-root/plugins/riCjLoader/I hope you are having a great time. Just as a reminder, I need a favor from you to:
+1. zip your product images and put it some where on your server so i can download
+2. send me the missing templates including:
+the email templates
+the design for the dropdown of "all categories"
+as we talked before, on the product info page, on the left of the product title is the product model, and as you can see right now im displaying only the first 5 chars but im not sure if that's the way you want it. main_page=product_info&products_id=473
+
+and you should also browse the demo site, and tell me if anything is missing, more than likely it's because you haven't send me the design yet
+
+Regards
+
+Raine 

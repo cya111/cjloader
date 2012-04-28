@@ -20,5 +20,65 @@ $libs['jquery.ui'] = array(
 				)
 			)
 		)		
+	),
+	'1.8.17' => array(
+		'jscript_files' => array(
+			'ui.js' => array(
+				'local' => 'ui.js', 
+				'cdn' => array(
+					'http' => 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/jquery-ui.min.js', 
+					'https' => 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/jquery-ui.min.js'
+				)
+			)
+		),
+		'css_files' => array(
+			'ui.css' => array(
+				'local' => 'ui.css', 
+				'cdn' => array(
+					'http' => 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/themes/base/jquery-ui.css', 
+					'https' => 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/themes/base/jquery-ui.css'
+				)
+			)
+		)		
+	),
+	'1.8.18' => array(
+		'jscript_files' => array(
+			'ui.js' => array(
+				'local' => 'ui.js', 
+				'cdn' => array(
+					'http' => 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js', 
+					'https' => 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js'
+				)
+			)
+		),
+		'css_files' => array(
+			'ui.css' => array(
+				'local' => 'ui.css', 
+				'cdn' => array(
+					'http' => 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/base/jquery-ui.css', 
+					'https' => 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/base/jquery-ui.css'
+				)
+			)
+		)		
+	),
+	'1.8.19' => array(
+		'jscript_files' => array(
+			'ui.js' => array(
+				'local' => 'ui.js', 
+				'cdn' => array(
+					'http' => 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.19/jquery-ui.min.js', 
+					'https' => 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.19/jquery-ui.min.js'
+				)
+			)
+		),
+		'css_files' => array(
+			'ui.css' => array(
+				'local' => 'ui.css', 
+				'cdn' => array(
+					'http' => 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.19/themes/base/jquery-ui.css', 
+					'https' => 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.19/themes/base/jquery-ui.css'
+				)
+			)
+		)		
 	)
 );

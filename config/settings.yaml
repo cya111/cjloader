@@ -1,0 +1,6 @@
+cdn: true
+# this option is not working yet
+#minify: true 
+load_global: true
+load_loaders: true
+supported_externals: ['http', 'https', '//']

@@ -7,90 +7,60 @@ use plugins\riPlugin\Plugin;
 class CssHandler extends Handler{
     protected 
         $file_pattern = "<link rel=\"stylesheet\" type=\"text/css\" media=\"%s\" href=\"%s\" />\n",
-        $extension = 'css';
+        $extension = 'css',
+        $template_base_dir = 'css';
     /**
      * (non-PHPdoc)
      * @see plugins\riCjLoader.Handler::load()
      */
-    public function load(&$files, &$loaded_files, &$previous_files, $type, $file, $location, $options){
+    public function load(&$files, $file, $location, $options){
 
         if(!isset($options['media'])) $options['media'] = 'screen';
-         
-        // is this file loaded?
-        if(!array_key_exists($file, $loaded_files)){
-
-            $files['css'][$location][$options['media']][] = $file;    
-            // update the location of the loaded files
-        	$loaded_files[$file] = array('location' => $location, 'options' => $options);        
-        }
-        elseif(isset($previous_files['css'])){
-            $to_be_re_add = array();
-            // a very special case, we need to traverse back
-            foreach($previous_files['css'] as $previous_file){
-                $to_be_re_add[] = $previous_file['file'];
-
-                // remove from the files array                            
-                unset($files['css'][$previous_file['location']][array_search($previous_file['file'], $files['css'][$previous_file['location']][$options['media']])]);
-
-                // update the location of the loaded files
-                $loaded_files[$previous_file['file']]['location'] = $loaded_files[$file]['location'];
-            }
-			// re-add at the better location  
-            array_splice($files['css'][$location][$options['media']], array_search($file, $files['css'][$loaded_files[$file]['location']][$options['media']]), 0, $to_be_re_add);
-        }
-        
-        
-        
-        $previous_files['css'][] = array('file' => $file, 'location' => $location);
+                 
+        $files['css'][$location][$options['media']][$file] = $options;                  
     }
 
     /**
      * (non-PHPdoc)
      * @see plugins\riCjLoader.Handler::process()
      */
-    public function process($files, $type, $loader){
+    public function process($files, $loader){
                        
         ob_start();
         foreach ($files as $media => $_files){
             $_files = $loader->findAssets($_files, $type);  
             $to_load = array();   
                      
-            foreach($_files as $file){                
+            foreach($_files as $file => $options){                
                  
                 // the file is external file or minify is off
-                if(!$loader->get('minify') || $file['external']){
+                if($options['external']){
                     // if the inject content is not empty, we should push it into 1 file to cache
                     if(($cache_file = $this->cache($to_load)) !== false){
                         echo sprintf($this->file_pattern, $media, $cache_file);
                     } 
-                    echo sprintf($this->file_pattern, $media, $file['src']);                                            
+                    echo sprintf($this->file_pattern, $media, $file);                                            
                 }
-                else{
-                    $ext = pathinfo($file['src'], PATHINFO_EXTENSION);
-                    $file_info = $loader->getLoadedFile($file['src']);
+                else{                                        
                     // the file is php file and needs to be included
-                    if($ext == 'php') {
+                    if($options['ext'] == 'php') {
                         if(($cache_file = $this->cache($to_load)) !== false){                                      
                             echo sprintf($this->file_pattern, $media, $cache_file);                            
                         }
-                        //ob_start();
-                        include($file['src']);  
-                        //$inject_content .= ob_get_contents();
-                        //ob_end_clean(); 
-                        //$filesrcs .= $file['src'];
+                        include($file);  
                     }
-                    elseif(isset($file_info['options']['inline'])){
+                    elseif(isset($options['inline'])){
                         
                         if(($cache_file = $this->cache($to_load)) !== false){                                      
                             echo sprintf($this->file_pattern, $media, $cache_file);                            
                         }
                         
-                        echo $file_info['options']['inline'];
+                        echo $options['inline'];
                     
                     }
                     // minify
                     else {
-                        $to_load[] = $file['src'];        
+                        $to_load[] = $file;        
                     }
                 }                                    
             }
@@ -100,8 +70,7 @@ class CssHandler extends Handler{
             }                                    
         }
         
-        $result = ob_get_contents();
-        ob_end_clean();
+        $result = ob_get_clean();
         
         return $result;
     }
