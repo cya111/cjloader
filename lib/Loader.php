@@ -29,7 +29,8 @@ class Loader
     	'dirs' => array(), 
 		'loaders' => '*', 	 		
 	),
-	$location = 0;
+	$inline = array(),
+	$location = 1;
 
 	function __construct()
 	{
@@ -48,7 +49,7 @@ class Loader
 
 	function get($key = '', $default = false){
 		if(!empty($key))
-		return isset($this->options[$key]) ? $this->options[$key] : $default;
+		    return isset($this->options[$key]) ? $this->options[$key] : $default;
 		else return $this->options;
 	}
 
@@ -65,7 +66,7 @@ class Loader
 		$previous_files = array();
 		// rather costly operation here but we need to determine the location
 		if(empty($location)){
-			$location = ++$this->location;
+			$location = $this->location++;
 		}
 		// now we will have to echo out the string to be replaced here
 		if($location !== 'header' && $location !== 'footer')
@@ -100,7 +101,22 @@ class Loader
 		 
 		$this->getHandler($options['type'])->load($files, $file, $location, $options);
 	}
-
+	
+	public function startInline($type, $location = ''){
+	    if($location !== 'header' && $location !== 'footer'){
+            if(empty($location)) $location = $this->location;
+            if(!isset($this->files[$location]))
+	        echo  '<!-- ricjloader:' . $location . ' -->';
+	    }
+	    
+	    $this->inline = array('type' => $type, 'location' => $location);
+        ob_start();
+	}
+	
+    public function endInline(){
+        $this->load(array('inline.' . $this->inline['type'] => array('inline' => ob_get_clean())), $this->inline['location']);        
+	}
+	
 	private function getHandler($handler){
 		if(!isset($this->handlers[$handler])){
 			$this->handlers[$handler] = Plugin::get('riCjLoader.' . ucfirst($handler) . 'Handler');
@@ -112,16 +128,30 @@ class Loader
 	 * Inject the assets into the content of the page
 	 * @param string $content
 	 */
-	public function injectAssets(&$content){
+	public function injectAssets(&$content){		
 
-		// set the correct base
+	    // set the correct base
 		$this->setCurrentPage();
 
 		if($this->get('load_global')) $this->loadGlobal();
 
 		if($this->get('load_loaders')) $this->loadLoaders();
-		 
-		$this->processed_files = $this->processFiles($content);
+	    
+	    $ordered_files = array();
+	    if(isset($this->files['header']))
+		    $ordered_files['header'] = $this->files['header'];
+		    
+		// scan the content to find out the real order of the loader
+		preg_match_all("/(<!-- ricjloader:)(.*?)(-->)/", $content, $matches, PREG_SET_ORDER);
+		foreach ($matches as $val) {
+			if(isset($this->files[(int)$val[2]]))
+			$ordered_files[(int)$val[2]] = $this->files[(int)$val[2]];
+		}
+
+		if(isset($this->files['footer']))
+		    $ordered_files['footer'] = $this->files['footer'];
+	    
+		$this->processFiles($ordered_files);
 			
 		foreach ($this->processed_files as $type => $locations){
 			foreach($locations as $location => $files){
@@ -144,22 +174,32 @@ class Loader
 		}
 	}
 
-	private function processFiles($content){
-		// scan the content to find out the real order of the loader
-		$ordered_files = array();
+	public function getAssetsArray(){
+        // set the correct base
+		$this->setCurrentPage();
+
+		if($this->get('load_global')) $this->loadGlobal();
+
+		if($this->get('load_loaders')) $this->loadLoaders();
 	    
-		if(isset($this->files['header']))
-		    $ordered_files['header'] = $this->files['header'];
-		    
-		preg_match_all("/(<!-- ricjloader:)(.*?)(-->)/", $content, $matches, PREG_SET_ORDER);
-		foreach ($matches as $val) {
-			if(isset($this->files[(int)$val[2]]))
-			$ordered_files[(int)$val[2]] = $this->files[(int)$val[2]];
+	    $this->processFiles($this->files);
+	    
+	    $result = array();
+		foreach ($this->processed_files as $type => $locations){
+			foreach($locations as $location => $files){
+				 
+				// we may want to do some caching here
+				$result[$location][$type] = $this->getHandler($type)->processArray($files, $type, $this);
+			}
 		}
 
-		if(isset($this->files['footer']))
-		    $ordered_files['footer'] = $this->files['footer'];
-		        
+		return $result;
+	}
+	
+	public function processFiles($ordered_files){
+	    
+	    //if(!empty($this->processed_files)) return $this->processed_files;	    	    		
+				    
 		// now we loop thru the $ordered_files to make sure each file is loaded only once
 		$loaded_files = $to_load = array();
 		foreach ($ordered_files as $location => $files){
@@ -184,7 +224,6 @@ class Loader
 		}
 
 		// now we will have to process the list of files to put them in their real type to process later
-		$proccessed_files = array();
 		foreach($to_load as $location => $files){
 			foreach($files as $file => $options){
 				switch($options['ext']){
@@ -228,12 +267,12 @@ class Loader
 								{
 									if($this->get('cdn') && isset($css_file_options['cdn'])){
 										$file = $this->request_type == 'NONSSL' ? $css_file_options['cdn']['http'] : $css_file_options['cdn']['https'];
-										$this->_load($proccessed_files, $file, $location, array('type' => 'css'));
+										$this->_load($this->processed_files, $file, $location, array('type' => 'css'));
 									}
 									else
 									{
 										$file = __DIR__ . '/../content/resources/' . $lib . '/' . $lib_version . '/' . (!empty($css_file_options['local']) ? $css_file_options['local'] : $css_file);
-										$this->_load($proccessed_files, $file, $location, array('type' => 'css'));
+										$this->_load($this->processed_files, $file, $location, array('type' => 'css'));
 									}
 								}
 
@@ -242,42 +281,25 @@ class Loader
 								{
 									if($this->get('cdn') && isset($jscript_file_options['cdn'])){
 										$file = $this->request_type == 'NONSSL' ? $jscript_file_options['cdn']['http'] : $jscript_file_options['cdn']['https'];
-										$this->_load($proccessed_files, $file, $location, array('type' => 'js'));
+										$this->_load($this->processed_files, $file, $location, array('type' => 'js'));
 									}
 									else
 									{
 										$file = __DIR__ . '/../content/resources/' . $lib . '/' . $lib_version . '/' . (!empty($jscript_file_options['local']) ? $jscript_file_options['local'] : $jscript_file);
-										$this->_load($proccessed_files, $file, $location, array('type' => 'js'));
+										$this->_load($this->processed_files, $file, $location, array('type' => 'js'));
 									}
 								}
 							}
 						}
 						break;
 					default:
-						$this->_load($proccessed_files, $file, $location, $options);
+						$this->_load($this->processed_files, $file, $location, $options);
 						break;
 				}
 			}
 		}
 
-		return $proccessed_files;
-	}
-
-	/**
-	 *
-	 * This function should return the assets in array format
-	 */
-	public function getAssetsArray(){
-		$result = array();
-		foreach ($this->processed_files as $type => $locations){
-			foreach($locations as $location => $files){
-				 
-				// we may want to do some caching here
-				$result[$location][$type] = $this->getHandler($type)->processArray($files, $type, $this);
-			}
-		}
-
-		return $result;
+		return $this->processed_files;
 	}
 
 	private function strposArray($haystack, $needles) {

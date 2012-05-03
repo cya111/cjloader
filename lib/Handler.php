@@ -88,7 +88,7 @@ abstract class Handler{
      * @param object Loader $loader
      */
     public function processArray($files, $type, $loader){        
-        return $loader->findAssets($files, $type);                               
+        return $loader->findAssets($files, $type);                            
     }
     
     /**
@@ -99,7 +99,9 @@ abstract class Handler{
      * @param string $filesrcs
      * @param string $type
      */
-    protected function cache(&$to_load){        
+    protected function cache(&$to_load){
+        global $request_type;
+        
         $cache_file = false;
         if(!empty($to_load)){        	
         	            
@@ -112,7 +114,15 @@ abstract class Handler{
 
             if($cache_file !== false){
 	            // temp hack for admin support
-            	$cache_file = Plugin::get('riCache.Cache')->getRelativePath(IS_ADMIN_FLAG ? DIR_FS_ADMIN : DIR_FS_CATALOG, $cache_file);
+	            if(IS_ADMIN_FLAG){               	                
+	                $cache_file = 
+	                //Plugin::get('riUtility.File')->getRelativePath(Plugin::get('riUtility.Uri')->getCurrent(), $request_type == 'SSL' ? DIR_WS_HTTPS_ADMIN : DIR_WS_ADMIN) . 
+	                Plugin::get('riUtility.File')->getRelativePath(DIR_FS_ADMIN, $cache_file);
+	            }else{
+	                $cache_file = 
+	                //Plugin::get('riUtility.File')->getRelativePath(Plugin::get('riUtility.Uri')->getCurrent(), $request_type == 'SSL' ? DIR_WS_HTTPS_CATALOG : DIR_WS_CATALOG) .
+	                Plugin::get('riUtility.File')->getRelativePath(DIR_FS_CATALOG, $cache_file);    
+	            }            	
             }
             
             $to_load = array();           
