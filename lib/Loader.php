@@ -90,6 +90,7 @@ class Loader
 				$this->files[$location][$file] = $options;
 			}
 		}
+		return $location;
 	}
 
 	private function _load(&$files, $file, $location, $options){
@@ -110,7 +111,7 @@ class Loader
 	    }
 	    
 	    $this->inline = array('type' => $type, 'location' => $location);
-        ob_start();
+        ob_start();        
 	}
 	
     public function endInline(){

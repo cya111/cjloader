@@ -43,25 +43,25 @@ abstract class Handler{
             if($options['external']){
                 // if the inject content is not empty, we should push it into 1 file to cache
                 if(($cache_file = $this->cache($to_load)) !== false){
-                    echo sprintf($this->file_pattern, $cache_file);
+                    printf($this->file_pattern, $cache_file);
                 }
 
-                echo sprintf($this->file_pattern, $file);                
+                printf($this->file_pattern, $file);                
             }
             else{                
                 // the file is php file and needs to be included
                 if($options['ext'] == 'php') {
                     if(($cache_file = $this->cache($to_load)) !== false){
-                        echo sprintf($this->file_pattern, $cache_file);
+                        printf($this->file_pattern, $cache_file);
                     }
                     include($file);      
                 }
                 elseif(isset($options['inline'])){
 
                     if(($cache_file = $this->cache($to_load)) !== false){
-                        echo sprintf($this->file_pattern, $cache_file);
+                        printf($this->file_pattern, $cache_file);
                     }
-                    echo $options['inline'];
+                    echo $this->processInline($options['inline']);
                 }                
 
                 // minify
@@ -72,7 +72,7 @@ abstract class Handler{
         }
 
         if(($cache_file = $this->cache($to_load)) !== false){
-            echo sprintf($this->file_pattern, $cache_file);
+            printf($this->file_pattern, $cache_file);
         }
 
         $result = ob_get_clean();        
@@ -128,5 +128,9 @@ abstract class Handler{
             $to_load = array();           
         }
         return $cache_file;
+    }
+
+    protected function processInline($content){
+        return $content;
     }
 }

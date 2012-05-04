@@ -1,4 +1,4 @@
-CjLoader is a product of RubikIntegration.com. The plugin/module is meant for Zencart ecommerce framework
+riCjLoader is a product of RubikIntegration.com. The plugin/module is meant for Zencart ecommerce framework
 
 **Features**
 1. Allowing different plugins to minimize javascript conflicts
