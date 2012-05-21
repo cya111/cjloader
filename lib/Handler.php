@@ -42,8 +42,9 @@ abstract class Handler{
             // the file is external file or minify is off
             if($options['external']){
                 // if the inject content is not empty, we should push it into 1 file to cache
-                if(($cache_file = $this->cache($to_load)) !== false){
-                    printf($this->file_pattern, $cache_file);
+                if(($cache_files = $this->cache($to_load, $loader->get('minify'))) !== false){
+                    foreach($cache_files as $cache_file)
+                        printf($this->file_pattern, $cache_file);
                 }
 
                 printf($this->file_pattern, $file);                
@@ -51,15 +52,17 @@ abstract class Handler{
             else{                
                 // the file is php file and needs to be included
                 if($options['ext'] == 'php') {
-                    if(($cache_file = $this->cache($to_load)) !== false){
-                        printf($this->file_pattern, $cache_file);
+                    if(($cache_files = $this->cache($to_load, $loader->get('minify'))) !== false){
+                        foreach($cache_files as $cache_file)
+                            printf($this->file_pattern, $cache_file);
                     }
                     include($file);      
                 }
                 elseif(isset($options['inline'])){
 
-                    if(($cache_file = $this->cache($to_load)) !== false){
-                        printf($this->file_pattern, $cache_file);
+                    if(($cache_files = $this->cache($to_load, $loader->get('minify'))) !== false){
+                        foreach($cache_files as $cache_file)
+                            printf($this->file_pattern, $cache_file);
                     }
                     echo $this->processInline($options['inline']);
                 }                
@@ -71,8 +74,9 @@ abstract class Handler{
             }            
         }
 
-        if(($cache_file = $this->cache($to_load)) !== false){
-            printf($this->file_pattern, $cache_file);
+        if(($cache_files = $this->cache($to_load, $loader->get('minify'))) !== false){
+            foreach($cache_files as $cache_file)
+                printf($this->file_pattern, $cache_file);
         }
 
         $result = ob_get_clean();        
@@ -99,35 +103,42 @@ abstract class Handler{
      * @param string $filesrcs
      * @param string $type
      */
-    protected function cache(&$to_load){
+    protected function cache(&$to_load, $minify){
         global $request_type;
         
-        $cache_file = false;
+        $cache_files = array();
         if(!empty($to_load)){        	
-        	            
-            $cache_filename = md5(serialize($to_load)) . '.' . $this->extension; 
-            
-            if(($cache_file = Plugin::get('riCache.Cache')->exists($cache_filename, 'cjloader')) === false){
-            	// Todo: what to do if we do not turn on the minify?
-                $cache_file = Plugin::get('riCache.Cache')->write($cache_filename, 'cjloader', Plugin::get('riCjLoader.MinifyFilter')->filter($to_load));
-            }    
-
-            if($cache_file !== false){
-	            // temp hack for admin support
-	            if(IS_ADMIN_FLAG){               	                
-	                $cache_file = 
-	                //Plugin::get('riUtility.File')->getRelativePath(Plugin::get('riUtility.Uri')->getCurrent(), $request_type == 'SSL' ? DIR_WS_HTTPS_ADMIN : DIR_WS_ADMIN) . 
-	                Plugin::get('riUtility.File')->getRelativePath(DIR_FS_ADMIN, $cache_file);
-	            }else{
-	                $cache_file = 
-	                //Plugin::get('riUtility.File')->getRelativePath(Plugin::get('riUtility.Uri')->getCurrent(), $request_type == 'SSL' ? DIR_WS_HTTPS_CATALOG : DIR_WS_CATALOG) .
-	                Plugin::get('riUtility.File')->getRelativePath(DIR_FS_CATALOG, $cache_file);    
-	            }            	
+            $relative_directory = IS_ADMIN_FLAG ? DIR_FS_ADMIN : DIR_FS_CATALOG;        	            
+            // if minify is off, we simply need to copy all these to cache folder
+            if(!$minify){                
+                foreach ($to_load as $file){
+                    $destination_file = Plugin::get('riCache.Cache')->getPath() . basename($file);
+                    if(!file_exists($destination_file))
+                        copy($file, $destination_file);                    
+                    $cache_files[] = Plugin::get('riUtility.File')->getRelativePath($relative_directory, $destination_file);
+                }                
             }
-            
-            $to_load = array();           
+            else{
+                $cache_filename = md5(serialize($to_load)) . '.' . $this->extension; 
+                
+                if(($cache_file = Plugin::get('riCache.Cache')->exists($cache_filename, 'cjloader')) === false){
+                	// Todo: what to do if we do not turn on the minify?
+                    $cache_file = Plugin::get('riCache.Cache')->write($cache_filename, 'cjloader', Plugin::get('riCjLoader.MinifyFilter')->filter($to_load));
+                }    
+                            
+                if($cache_file !== false){
+    	            // temp hack for admin support
+    	                           	                
+	                $cache_files[] = 
+	                //Plugin::get('riUtility.File')->getRelativePath(Plugin::get('riUtility.Uri')->getCurrent(), $request_type == 'SSL' ? DIR_WS_HTTPS_ADMIN : DIR_WS_ADMIN) . 
+	                Plugin::get('riUtility.File')->getRelativePath($relative_directory, $cache_file);
+    	                        	
+                }
+                
+                $to_load = array();
+            }           
         }
-        return $cache_file;
+        return !empty($cache_files) ? $cache_files : false;
     }
 
     protected function processInline($content){

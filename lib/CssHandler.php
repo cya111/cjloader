@@ -36,23 +36,26 @@ class CssHandler extends Handler{
                 // the file is external file or minify is off
                 if($options['external']){
                     // if the inject content is not empty, we should push it into 1 file to cache
-                    if(($cache_file = $this->cache($to_load)) !== false){
-                        echo sprintf($this->file_pattern, $media, $cache_file);
+                    if(($cache_files = $this->cache($to_load, $loader->get('minify'))) !== false){
+                        foreach($cache_files as $cache_file)
+                            printf($this->file_pattern, $media, $cache_file);
                     } 
-                    echo sprintf($this->file_pattern, $media, $file);                                            
+                    printf($this->file_pattern, $media, $file);                                            
                 }
                 else{                                        
                     // the file is php file and needs to be included
                     if($options['ext'] == 'php') {
-                        if(($cache_file = $this->cache($to_load)) !== false){                                      
-                            echo sprintf($this->file_pattern, $media, $cache_file);                            
+                        if(($cache_files = $this->cache($to_load, $loader->get('minify'))) !== false){                                      
+                            foreach($cache_files as $cache_file)
+                                printf($this->file_pattern, $media, $cache_file);                            
                         }
                         include($file);  
                     }
                     elseif(isset($options['inline'])){
                         
-                        if(($cache_file = $this->cache($to_load)) !== false){                                      
-                            echo sprintf($this->file_pattern, $media, $cache_file);                            
+                        if(($cache_files = $this->cache($to_load, $loader->get('minify'))) !== false){                                      
+                            foreach($cache_files as $cache_file)
+                                printf($this->file_pattern, $media, $cache_file);                            
                         }
                         
                         echo $options['inline'];
@@ -65,8 +68,9 @@ class CssHandler extends Handler{
                 }                                    
             }
 
-            if(($cache_file = $this->cache($to_load)) !== false){                                      
-                echo sprintf($this->file_pattern, $media, $cache_file);                            
+            if(($cache_files = $this->cache($to_load, $loader->get('minify'))) !== false){                                      
+                foreach($cache_files as $cache_file)
+                    printf($this->file_pattern, $media, $cache_file);                            
             }                                    
         }
         

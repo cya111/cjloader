@@ -80,8 +80,7 @@ class Loader
 			 
 			// only add this file if it has not been requested for the same position
 			if(!isset($this->files[$location]) || !in_array($file, $this->files[$location])){
-				$path_info = pathinfo($file);;
-				$options['ext'] = $path_info['extension'];
+				$options['ext'] = pathinfo($file, PATHINFO_EXTENSION);
 
 				if(isset($options['inline']) && !empty($options['inline'])) {
 					$file = md5($options['inline']) . '.' . $options['ext'];
@@ -323,7 +322,7 @@ class Loader
 	}
 
 	public function loadGlobal(){
-
+        global $page_directory;
 		/**
 		 * load all template-specific stylesheets, named like "style*.css", alphabetically
 		 */
