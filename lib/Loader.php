@@ -36,6 +36,8 @@ class Loader
 	{
 		$this->options = array_merge($this->options, Plugin::get('riPlugin.Settings')->get('riCjLoader'));
 		 
+		$this->options['relative_directory'] = IS_ADMIN_FLAG ? DIR_FS_ADMIN : DIR_FS_CATALOG;
+		
 		global $page_directory, $request_type, $template;
 
 		$this->template = $template;

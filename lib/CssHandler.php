@@ -36,7 +36,7 @@ class CssHandler extends Handler{
                 // the file is external file or minify is off
                 if($options['external']){
                     // if the inject content is not empty, we should push it into 1 file to cache
-                    if(($cache_files = $this->cache($to_load, $loader->get('minify'))) !== false){
+                    if(($cache_files = $this->cache($to_load, $loader)) !== false){
                         foreach($cache_files as $cache_file)
                             printf($this->file_pattern, $media, $cache_file);
                     } 
@@ -45,7 +45,7 @@ class CssHandler extends Handler{
                 else{                                        
                     // the file is php file and needs to be included
                     if($options['ext'] == 'php') {
-                        if(($cache_files = $this->cache($to_load, $loader->get('minify'))) !== false){                                      
+                        if(($cache_files = $this->cache($to_load, $loader)) !== false){                                      
                             foreach($cache_files as $cache_file)
                                 printf($this->file_pattern, $media, $cache_file);                            
                         }
@@ -53,7 +53,7 @@ class CssHandler extends Handler{
                     }
                     elseif(isset($options['inline'])){
                         
-                        if(($cache_files = $this->cache($to_load, $loader->get('minify'))) !== false){                                      
+                        if(($cache_files = $this->cache($to_load, $loader)) !== false){                                      
                             foreach($cache_files as $cache_file)
                                 printf($this->file_pattern, $media, $cache_file);                            
                         }
@@ -68,7 +68,7 @@ class CssHandler extends Handler{
                 }                                    
             }
 
-            if(($cache_files = $this->cache($to_load, $loader->get('minify'))) !== false){                                      
+            if(($cache_files = $this->cache($to_load, $loader)) !== false){                                      
                 foreach($cache_files as $cache_file)
                     printf($this->file_pattern, $media, $cache_file);                            
             }                                    

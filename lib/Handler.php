@@ -42,7 +42,7 @@ abstract class Handler{
             // the file is external file or minify is off
             if($options['external']){
                 // if the inject content is not empty, we should push it into 1 file to cache
-                if(($cache_files = $this->cache($to_load, $loader->get('minify'))) !== false){
+                if(($cache_files = $this->cache($to_load, $loader)) !== false){
                     foreach($cache_files as $cache_file)
                         printf($this->file_pattern, $cache_file);
                 }
@@ -52,7 +52,7 @@ abstract class Handler{
             else{                
                 // the file is php file and needs to be included
                 if($options['ext'] == 'php') {
-                    if(($cache_files = $this->cache($to_load, $loader->get('minify'))) !== false){
+                    if(($cache_files = $this->cache($to_load, $loader)) !== false){
                         foreach($cache_files as $cache_file)
                             printf($this->file_pattern, $cache_file);
                     }
@@ -60,7 +60,7 @@ abstract class Handler{
                 }
                 elseif(isset($options['inline'])){
 
-                    if(($cache_files = $this->cache($to_load, $loader->get('minify'))) !== false){
+                    if(($cache_files = $this->cache($to_load, $loader)) !== false){
                         foreach($cache_files as $cache_file)
                             printf($this->file_pattern, $cache_file);
                     }
@@ -74,7 +74,7 @@ abstract class Handler{
             }            
         }
 
-        if(($cache_files = $this->cache($to_load, $loader->get('minify'))) !== false){
+        if(($cache_files = $this->cache($to_load, $loader)) !== false){
             foreach($cache_files as $cache_file)
                 printf($this->file_pattern, $cache_file);
         }
@@ -103,19 +103,18 @@ abstract class Handler{
      * @param string $filesrcs
      * @param string $type
      */
-    protected function cache(&$to_load, $minify){
+    protected function cache(&$to_load, $loader){
         global $request_type;
         
         $cache_files = array();
-        if(!empty($to_load)){        	
-            $relative_directory = IS_ADMIN_FLAG ? DIR_FS_ADMIN : DIR_FS_CATALOG;        	            
+        if(!empty($to_load)){        	                    	            
             // if minify is off, we simply need to copy all these to cache folder
-            if(!$minify){                
+            if(!$loader->get('minify')){                
                 foreach ($to_load as $file){
                     $destination_file = Plugin::get('riCache.Cache')->getPath() . basename($file);
                     if(!file_exists($destination_file))
                         copy($file, $destination_file);                    
-                    $cache_files[] = Plugin::get('riUtility.File')->getRelativePath($relative_directory, $destination_file);
+                    $cache_files[] = Plugin::get('riUtility.File')->getRelativePath($loader->get('relative_directory'), $destination_file);
                 }                
             }
             else{
@@ -131,7 +130,7 @@ abstract class Handler{
     	                           	                
 	                $cache_files[] = 
 	                //Plugin::get('riUtility.File')->getRelativePath(Plugin::get('riUtility.Uri')->getCurrent(), $request_type == 'SSL' ? DIR_WS_HTTPS_ADMIN : DIR_WS_ADMIN) . 
-	                Plugin::get('riUtility.File')->getRelativePath($relative_directory, $cache_file);
+	                Plugin::get('riUtility.File')->getRelativePath($loader->get('relative_directory'), $cache_file);
     	                        	
                 }
                 
