@@ -34,9 +34,7 @@ class Loader
 
 	function __construct()
 	{
-		$this->options = array_merge($this->options, Plugin::get('riPlugin.Settings')->get('riCjLoader'));
-		 
-		$this->options['relative_directory'] = IS_ADMIN_FLAG ? DIR_FS_ADMIN : DIR_FS_CATALOG;
+		$this->options = array_merge($this->options, Plugin::get('riPlugin.Settings')->get('riCjLoader'));		 		
 		
 		global $page_directory, $request_type, $template;
 
@@ -107,8 +105,8 @@ class Loader
 	public function startInline($type, $location = ''){
 	    if($location !== 'header' && $location !== 'footer'){
             if(empty($location)) $location = $this->location;
-            if(!isset($this->files[$location]))
-	        echo  '<!-- ricjloader:' . $location . ' -->';
+            //if(!isset($this->files[$location]))
+	        //    echo  '<!-- ricjloader2:' . $location++ . ' -->';
 	    }
 	    
 	    $this->inline = array('type' => $type, 'location' => $location);
@@ -154,7 +152,7 @@ class Loader
 		    $ordered_files['footer'] = $this->files['footer'];
 	    
 		$this->processFiles($ordered_files);
-			
+		
 		foreach ($this->processed_files as $type => $locations){
 			foreach($locations as $location => $files){
 				 

@@ -5,7 +5,11 @@ use plugins\riPlugin\Plugin;
 
 abstract class Handler{
     
-    protected $file_pattern = '', $extension = '', $template_base_dir = '';
+    protected 
+    $file_pattern = '', 
+    $extension = '', 
+    $template_base_dir = '',
+    $host = '';
     /**
      * 
      * This function is responsible for loading the files into the array for later parsing
@@ -17,6 +21,14 @@ abstract class Handler{
      * @param string $location
      * @param array $options
      */
+    public function __construct(){
+        global $request_type;
+        if($request_type == 'SSL')
+            $this->host = HTTPS_SERVER . DIR_WS_HTTPS_CATALOG;
+        else
+            $this->host = HTTP_SERVER . DIR_WS_CATALOG;
+    }
+    
     public function load(&$files, $file, $location, $options){                   
     	$files[$options['type']][$location][$file] = $options;         
     }
@@ -103,8 +115,7 @@ abstract class Handler{
      * @param string $filesrcs
      * @param string $type
      */
-    protected function cache(&$to_load, $loader){
-        global $request_type;
+    protected function cache(&$to_load, $loader){        
         
         $cache_files = array();
         if(!empty($to_load)){        	                    	            
@@ -115,8 +126,8 @@ abstract class Handler{
                     $destination_file = Plugin::get('riCache.Cache')->getPath() . 'cjloader/' . $cache_filename;
                     if(!file_exists($destination_file)){
                         $cache_file = Plugin::get('riCache.Cache')->write($cache_filename, 'cjloader', Plugin::get('riCjLoader.MinifyFilter')->filter(array($file), array('minifiers' => array('application/x-javascript' => ''))));                    
-                    }                    
-                    $cache_files[] = Plugin::get('riUtility.File')->getRelativePath($loader->get('relative_directory'), $destination_file);
+                    }                   
+                    $cache_files[] = $this->host . Plugin::get('riUtility.File')->getRelativePath(DIR_FS_CATALOG, $destination_file);
                 }                
             }
             else{
@@ -132,7 +143,7 @@ abstract class Handler{
     	                           	                
 	                $cache_files[] = 
 	                //Plugin::get('riUtility.File')->getRelativePath(Plugin::get('riUtility.Uri')->getCurrent(), $request_type == 'SSL' ? DIR_WS_HTTPS_ADMIN : DIR_WS_ADMIN) . 
-	                Plugin::get('riUtility.File')->getRelativePath($loader->get('relative_directory'), $cache_file);
+	                $this->host . Plugin::get('riUtility.File')->getRelativePath(DIR_FS_CATALOG, $cache_file);
     	                        	
                 }
                 
