@@ -111,7 +111,7 @@ abstract class Handler{
             // if minify is off, we simply need to copy all these to cache folder
             if(!$loader->get('minify')){                
                 foreach ($to_load as $file){
-                	$cache_filename = basename($file);
+                    $cache_filename = basename($file);
                     $destination_file = Plugin::get('riCache.Cache')->getPath() . 'cjloader/' . $cache_filename;
                     if(!file_exists($destination_file)){
                         $cache_file = Plugin::get('riCache.Cache')->write($cache_filename, 'cjloader', Plugin::get('riCjLoader.MinifyFilter')->filter(array($file), array('minifiers' => array('application/x-javascript' => ''))));                    
