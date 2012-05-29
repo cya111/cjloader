@@ -145,10 +145,9 @@ abstract class Handler{
 	                //Plugin::get('riUtility.File')->getRelativePath(Plugin::get('riUtility.Uri')->getCurrent(), $request_type == 'SSL' ? DIR_WS_HTTPS_ADMIN : DIR_WS_ADMIN) . 
 	                $this->host . Plugin::get('riUtility.File')->getRelativePath(DIR_FS_CATALOG, $cache_file);
     	                        	
-                }
-                
-                $to_load = array();
-            }           
+                }                                
+            }  
+            $to_load = array();         
         }
         return !empty($cache_files) ? $cache_files : false;
     }
