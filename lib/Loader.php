@@ -27,13 +27,16 @@ class Loader
 	$handlers = array(),
 	$options = array(
     	'dirs' => array(), 
-		'loaders' => '*', 	 		
+		'loaders' => '*', 
+	    'load_global' => true,
+	    'load_loaders' => true,
+	    'load_print' => true	 		
 	),
 	$inline = array(),
 	$location = 1;
 
 	function __construct()
-	{
+	{	    
 		$this->options = array_merge($this->options, Plugin::get('riPlugin.Settings')->get('riCjLoader'));		 		
 		
 		global $page_directory, $request_type, $template;
@@ -383,13 +386,13 @@ class Loader
 		/**
 		 * load printer-friendly stylesheets -- named like "print*.css", alphabetically
 		 */
-		//if($this->get('load_print')) {
-		$directory_array = $this->findAssetsByPattern('.css', 'css', 'css', '/^print/');
-		// TODO: custom processing this
-		foreach ($directory_array as $key => $value) {
-			$this->load(array($key => array('type' => 'css', 'media' => 'print')), 'header');
+		if($this->get('load_print')) {
+    		$directory_array = $this->findAssetsByPattern('.css', 'css', 'css', '/^print/');
+    		// TODO: custom processing this
+    		foreach ($directory_array as $key => $value) {
+    			$this->load(array($key => array('type' => 'css', 'media' => 'print')), 'header');
+    		}
 		}
-		//}
 
 		/*
 		 if (file_exists(DIR_FS_CATALOG . 'plugins/riCjLoader/lib/browser.php') && floatval(phpversion()) > 5) {

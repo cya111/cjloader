@@ -146,8 +146,8 @@ abstract class Handler{
 	                $this->host . Plugin::get('riUtility.File')->getRelativePath(DIR_FS_CATALOG, $cache_file);
     	                        	
                 }                                
-            }  
-            $to_load = array();         
+            }         
+            $to_load = array();  
         }
         return !empty($cache_files) ? $cache_files : false;
     }
