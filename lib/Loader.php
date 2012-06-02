@@ -37,7 +37,7 @@ class Loader
 
 	function __construct()
 	{	    
-		$this->options = array_merge($this->options, Plugin::get('riPlugin.Settings')->get('riCjLoader'));		 		
+		$this->options = array_merge($this->options, Plugin::get('settings')->get('riCjLoader'));		 		
 		
 		global $page_directory, $request_type, $template;
 
