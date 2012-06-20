@@ -50,7 +50,7 @@ class Loader
 		$this->options = array_merge($this->options, $options);
 	}
 
-	function get($key = '', $default = false){
+	function getOption($key = '', $default = false){
 		if(!empty($key))
 		    return isset($this->options[$key]) ? $this->options[$key] : $default;
 		else return $this->options;
@@ -65,7 +65,7 @@ class Loader
 	function load($files, $location =''){
 
 		$files = (array)$files;
-		 
+
 		$previous_files = array();
 		// rather costly operation here but we need to determine the location
 		if(empty($location)){
@@ -136,9 +136,9 @@ class Loader
 	    // set the correct base
 		$this->setCurrentPage();
 
-		if($this->get('load_global')) $this->loadGlobal();
+		if($this->getOption('load_global')) $this->loadGlobal();
 
-		if($this->get('load_loaders')) $this->loadLoaders();
+		if($this->getOption('load_loaders')) $this->loadLoaders();
 	    
 	    $ordered_files = array();
 	    if(isset($this->files['header']))
@@ -155,7 +155,7 @@ class Loader
 		    $ordered_files['footer'] = $this->files['footer'];
 	    
 		$this->processFiles($ordered_files);
-		
+
 		foreach ($this->processed_files as $type => $locations){
 			foreach($locations as $location => $files){
 				 
@@ -181,9 +181,9 @@ class Loader
         // set the correct base
 		$this->setCurrentPage();
 
-		if($this->get('load_global')) $this->loadGlobal();
+		if($this->getOption('load_global')) $this->loadGlobal();
 
-		if($this->get('load_loaders')) $this->loadLoaders();
+		if($this->getOption('load_loaders')) $this->loadLoaders();
 	    
 	    $this->processFiles($this->files);
 	    
@@ -268,7 +268,7 @@ class Loader
 								if (isset($libs[$lib][$lib_version]['css_files']))
 								foreach ($libs[$lib][$lib_version]['css_files'] as $css_file => $css_file_options)
 								{
-									if($this->get('cdn') && isset($css_file_options['cdn'])){
+									if($this->getOption('cdn') && isset($css_file_options['cdn'])){
 										$file = $this->request_type == 'NONSSL' ? $css_file_options['cdn']['http'] : $css_file_options['cdn']['https'];
 										$this->_load($this->processed_files, $file, $location, array('type' => 'css'));
 									}
@@ -282,7 +282,7 @@ class Loader
 								if (isset($libs[$lib][$lib_version]['jscript_files']))
 								foreach ($libs[$lib][$lib_version]['jscript_files'] as $jscript_file => $jscript_file_options)
 								{
-									if($this->get('cdn') && isset($jscript_file_options['cdn'])){
+									if($this->getOption('cdn') && isset($jscript_file_options['cdn'])){
 										$file = $this->request_type == 'NONSSL' ? $jscript_file_options['cdn']['http'] : $jscript_file_options['cdn']['https'];
 										$this->_load($this->processed_files, $file, $location, array('type' => 'js'));
 									}
@@ -325,7 +325,7 @@ class Loader
 	}
 
 	public function loadGlobal(){
-        global $page_directory;
+        global $page_directory, $this_is_home_page, $cPath;
 		/**
 		 * load all template-specific stylesheets, named like "style*.css", alphabetically
 		 */
@@ -386,7 +386,7 @@ class Loader
 		/**
 		 * load printer-friendly stylesheets -- named like "print*.css", alphabetically
 		 */
-		if($this->get('load_print')) {
+		if($this->getOption('load_print')) {
     		$directory_array = $this->findAssetsByPattern('.css', 'css', 'css', '/^print/');
     		// TODO: custom processing this
     		foreach ($directory_array as $key => $value) {
@@ -458,8 +458,8 @@ class Loader
 		$templateDir = $this->getAssetDir($extension, $directory, DIR_WS_TEMPLATE);
 		$allFiles = $this->template->get_template_part($templateDir, $file_pattern, $extension);
 
-		if($this->get('inheritance') != ''){
-			$defaultDir = $this->getAssetDir($extension, $directory, DIR_WS_TEMPLATES. $this->get('inheritance'));
+		if($this->getOption('inheritance') != ''){
+			$defaultDir = $this->getAssetDir($extension, $directory, DIR_WS_TEMPLATES. $this->getOption('inheritance'));
 			$allFiles = array_unique(array_merge($this->template->get_template_part($defaultDir, $file_pattern, $extension),$allFiles));
 		}
 
@@ -469,8 +469,8 @@ class Loader
 			if(file_exists(DIR_FS_CATALOG.DIR_WS_TEMPLATE.$directory.'/'.$file)){
 				$files[DIR_WS_TEMPLATE.$directory.'/'.$file] = array('type' => $type);
 			}
-			elseif ($this->get('inheritance') != '' && file_exists(DIR_FS_CATALOG.DIR_WS_TEMPLATES.$this->get('inheritance').'/'.$directory.'/'.$file)){
-				$files[DIR_WS_TEMPLATES.$this->get('inheritance').'/'.$directory.'/'.$file] = array('type' => $directory);
+			elseif ($this->getOption('inheritance') != '' && file_exists(DIR_FS_CATALOG.DIR_WS_TEMPLATES.$this->getOption('inheritance').'/'.$directory.'/'.$file)){
+				$files[DIR_WS_TEMPLATES.$this->getOption('inheritance').'/'.$directory.'/'.$file] = array('type' => $directory);
 			}
 		}
 
@@ -478,13 +478,15 @@ class Loader
 	}
 
 	public function findAssets($files){
+        if(!is_array($files)) $files = array($files => null);
+
 		$list = array();
 		foreach ($files as $file => $options) {
 			$error = false; $include = false; $external = false;
 			// plugin?
 			if(strpos($file, '::') !== false){
 				$file = explode('::', $file);
-				 
+
 				if(!file_exists($path = DIR_FS_CATALOG . DIR_WS_TEMPLATE . 'plugins/' . $file[0] . '/resources/' . $file[1]))
 				if(!file_exists($path = DIR_FS_CATALOG . 'plugins/' . $file[0] . '/content/resources/' . $file[1]))
 				$error = true;
@@ -502,7 +504,7 @@ class Loader
 				else{
 					$error = true;
 					// can we find the path?
-					foreach($this->get('dirs') as $dir){
+					foreach($this->getOption('dirs') as $dir){
 						$path = str_replace('%type%', $this->getHandler($options['type'])->getTemplateBaseDir(), $dir) . $file;
 						if(file_exists(DIR_FS_CATALOG . $path)){
 							$error = false;
@@ -528,6 +530,24 @@ class Loader
 		return $list;
 	}
 
+    /**
+     * @param array $files
+     * @return array
+     */
+    public function get($files){
+        $list = $this->findAssets($files);
+        $result = array();
+        foreach($list as $file => $options){
+            $result[] = array(
+                'path' => Plugin::get('riUtility.File')->getRelativePath(DIR_FS_CATALOG, $file),
+                'options' => $options
+            );
+        }
+
+
+        return $result;
+    }
+
 	// for backward compatibility
 
 	function addLibs ($libs){
@@ -538,7 +558,7 @@ class Loader
 	}
 
 	function setCurrentPage(){
-		if(!$this->get('admin')){
+		if(!$this->getOption('admin')){
 			global $current_page, $this_is_home_page;
 
 			// set current page
@@ -571,7 +591,7 @@ class Loader
 		$template = $this->template;
 		$page_directory = $this->page_directory;;
 
-		if($this->get('loaders') == '*')
+		if($this->getOption('loaders') == '*')
 		{
 			$directory_array = $this->template->get_template_part(DIR_WS_TEMPLATE.'auto_loaders', '/^loader_/', '.php');
 			while(list ($key, $value) = each($directory_array)) {
@@ -581,9 +601,9 @@ class Loader
 				require(DIR_WS_TEMPLATE.'auto_loaders'. '/' . $value);
 			}
 		}
-		elseif(count($this->get('loaders')) > 0)
+		elseif(count($this->getOption('loaders')) > 0)
 		{
-			foreach($this->get('loaders') as $loader)
+			foreach($this->getOption('loaders') as $loader)
 			if(file_exists($path = DIR_WS_TEMPLATE.'auto_loaders'. '/loader_' . $loader .'.php')) require($path);
 		}
 		else

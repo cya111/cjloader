@@ -123,7 +123,7 @@ abstract class Handler{
         $cache_files = array();
         if(!empty($to_load)){        	                    	            
             // if minify is off, we simply need to copy all these to cache folder
-            if(!$loader->get('minify')){                
+            if(!$loader->getOption('combine')){
                 foreach ($to_load as $file){
                     $cache_filename = basename($file) . '.' . md5($file) . '.' . $this->extension;
                     $destination_file = $this->cache_path . $cache_filename;
