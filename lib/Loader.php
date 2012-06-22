@@ -69,11 +69,12 @@ class Loader
 		$previous_files = array();
 		// rather costly operation here but we need to determine the location
 		if(empty($location)){
-			$location = $this->location++;
+			$location = ++$this->location;
+            echo  '<!-- ricjloader:' . $location . ' -->';
 		}
 		// now we will have to echo out the string to be replaced here
-		if($location !== 'header' && $location !== 'footer')
-		echo  '<!-- ricjloader:' . $location . ' -->';
+		elseif($location !== 'header' && $location !== 'footer' && $location != $this->location)
+		    echo  '<!-- ricjloader:' . $location . ' -->';
 		 
 		foreach($files as $file => $options){
 			if(!is_array($options)) {
