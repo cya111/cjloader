@@ -8,7 +8,6 @@ use plugins\riPlugin\Plugin;
 
 class RiCjLoader extends PluginCore{
 	public function init(){
-		$listener = Plugin::get('riCore.Listener');
 		Plugin::get('dispatcher')->addListener(\plugins\riCore\Events::onPageEnd, array($this, 'onPageEnd'));
 	}	
     

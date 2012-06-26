@@ -1,4 +1,5 @@
 cache_path: <?php echo DIR_FS_CATALOG?>web_cache/cjloader/
+cache: true
 cdn: true
 # this option is not working yet
 combine: false

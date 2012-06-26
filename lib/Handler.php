@@ -48,7 +48,7 @@ abstract class Handler{
      * @param object Loader $loader
      */
     public function process($files, $loader){
-        $files = $loader->findAssets($files, $type);
+        $files = $loader->findAssets($files);
 
         $to_load = array();
                 
@@ -127,7 +127,7 @@ abstract class Handler{
                 foreach ($to_load as $file){
                     $cache_filename = basename($file) . '.' . md5($file) . '.' . $this->extension;
                     $destination_file = $this->cache_path . $cache_filename;
-                    if(!file_exists($destination_file)){
+                    if(!file_exists($destination_file) || !$loader->getOption('cache')){
                         $cache_file = Plugin::get('riCache.Cache')->write($destination_file, Plugin::get('riCjLoader.MinifyFilter')->filter(array($file), array('minifiers' => array('application/x-javascript' => ''))));                    
                     }                   
                     $cache_files[] = $this->host . Plugin::get('riUtility.File')->getRelativePath(DIR_FS_CATALOG, $destination_file);
@@ -136,7 +136,7 @@ abstract class Handler{
             else{
                 $cache_filename = md5(serialize($to_load)) . '.' . $this->extension; 
                 
-                if(($cache_file = Plugin::get('riCache.Cache')->exists($this->cache_path . $cache_filename)) === false){
+                if(($cache_file = Plugin::get('riCache.Cache')->exists($this->cache_path . $cache_filename)) === false  || !$loader->getOption('cache')){
                 	// Todo: what to do if we do not turn on the minify?
                     $cache_file = Plugin::get('riCache.Cache')->write($this->cache_path . $cache_filename, Plugin::get('riCjLoader.MinifyFilter')->filter($to_load));
                 }    
