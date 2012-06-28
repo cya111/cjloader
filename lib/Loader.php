@@ -21,6 +21,8 @@ class Loader
 	$page_directory = '',
 	$current_page = '',
 	$request_type,
+    $this_is_home_page,
+    $cPath,        
 	$loaders = array(),
 	$files = array(),
 	$processed_files = array(),
@@ -33,19 +35,24 @@ class Loader
 	    'load_print' => true	 		
 	),
 	$inline = array(),
-	$location = 1;
+	$location = 1,
+    $libs, $loaded_libs = array();
 
-	function __construct()
-	{	    
-		$this->options = array_merge($this->options, Plugin::get('settings')->get('riCjLoader'));		 		
-		
-		global $page_directory, $request_type, $template;
-
-		$this->template = $template;
-		$this->page_directory = $page_directory;
-		$this->request_type = $request_type;
+	public function __construct()
+	{
+		$this->options = array_merge($this->options, Plugin::get('settings')->get('riCjLoader'));		 						
 	}
 
+    public function setGlobalVariables(){
+        global $page_directory, $request_type, $template, $this_is_home_page, $cPath;
+
+        $this->template = $template;
+        $this->page_directory = $page_directory;
+        $this->request_type = $request_type;
+        $this->this_is_home_page = $this_is_home_page;
+        $this->cPath = $cPath;
+    }
+    
 	function set($options){
 		$this->options = array_merge($this->options, $options);
 	}
@@ -235,12 +242,19 @@ class Loader
 					case 'lib':
 						// we need to try loading the config file
 						$lib = str_replace('.lib', '', $file);
-						 
-						if (file_exists(DIR_FS_CATALOG . 'plugins/riCjLoader/configs/' . $lib . '.php'))
+
+                        if(!in_array($lib, $this->loaded_libs)){
+                            if (file_exists(__DIR__ . '/../configs/' . $lib . '.php'))
+                            {
+                                require (__DIR__ . '/../configs/' . $lib . '.php');
+                                $this->libs[$lib] = !isset($this->libs[$lib]) ? $libs[$lib]: array_merge($libs[$lib], $this->libs[$lib]);
+                            }
+                            $this->loaded_libs[] = $lib;
+                        }
+
+						if (isset($this->libs[$lib]))
 						{
-							require (DIR_FS_CATALOG . 'plugins/riCjLoader/configs/' . $lib . '.php');
-							 
-							$lib_versions = array_keys($libs[$lib]);
+							$lib_versions = array_keys($this->libs[$lib]);
 							 
 							// if options are passed in
 							if(is_array($options)){
@@ -266,8 +280,8 @@ class Loader
 								$lib_version = end($lib_versions);
 								 
 								// add the files
-								if (isset($libs[$lib][$lib_version]['css_files']))
-								foreach ($libs[$lib][$lib_version]['css_files'] as $css_file => $css_file_options)
+								if (isset($this->libs[$lib][$lib_version]['css_files']))
+								foreach ($this->libs[$lib][$lib_version]['css_files'] as $css_file => $css_file_options)
 								{
 									if($this->getOption('cdn') && isset($css_file_options['cdn'])){
 										$file = $this->request_type == 'NONSSL' ? $css_file_options['cdn']['http'] : $css_file_options['cdn']['https'];
@@ -275,13 +289,18 @@ class Loader
 									}
 									else
 									{
-										$file = __DIR__ . '/../content/resources/' . $lib . '/' . $lib_version . '/' . (!empty($css_file_options['local']) ? $css_file_options['local'] : $css_file);
+                                        if(strpos($css_file_options['local'], "::") !== false){
+                                            $local = explode("::", $css_file_options['local']);
+                                            $file = __DIR__ . '/../../' . $local[0] . '/content/resources/' . $lib . '/' . $lib_version . '/' . (!empty($local[1]) ? $local[1] : $css_file);
+                                        }
+                                        else
+										    $file = __DIR__ . '/../content/resources/' . $lib . '/' . $lib_version . '/' . (!empty($css_file_options['local']) ? $css_file_options['local'] : $css_file);
 										$this->_load($this->processed_files, $file, $location, array('type' => 'css'));
 									}
 								}
 
-								if (isset($libs[$lib][$lib_version]['jscript_files']))
-								foreach ($libs[$lib][$lib_version]['jscript_files'] as $jscript_file => $jscript_file_options)
+								if (isset($this->libs[$lib][$lib_version]['jscript_files']))
+								foreach ($this->libs[$lib][$lib_version]['jscript_files'] as $jscript_file => $jscript_file_options)
 								{
 									if($this->getOption('cdn') && isset($jscript_file_options['cdn'])){
 										$file = $this->request_type == 'NONSSL' ? $jscript_file_options['cdn']['http'] : $jscript_file_options['cdn']['https'];
@@ -289,7 +308,12 @@ class Loader
 									}
 									else
 									{
-										$file = __DIR__ . '/../content/resources/' . $lib . '/' . $lib_version . '/' . (!empty($jscript_file_options['local']) ? $jscript_file_options['local'] : $jscript_file);
+                                        if(strpos($jscript_file_options['local'], "::") !== false){
+                                            $local = explode("::", $jscript_file_options['local']);
+                                            $file = __DIR__ . '/../../' . $local[0] . '/content/resources/' . $lib . '/' . $lib_version . '/' . (!empty($local[1]) ? $local[1] : $jscript_file);
+                                        }
+                                        else
+										    $file = __DIR__ . '/../content/resources/' . $lib . '/' . $lib_version . '/' . (!empty($jscript_file_options['local']) ? $jscript_file_options['local'] : $jscript_file);
 										$this->_load($this->processed_files, $file, $location, array('type' => 'js'));
 									}
 								}
@@ -325,8 +349,7 @@ class Loader
 		return $pos;
 	}
 
-	public function loadGlobal(){
-        global $page_directory, $this_is_home_page, $cPath;
+	public function loadGlobal(){        
 		/**
 		 * load all template-specific stylesheets, named like "style*.css", alphabetically
 		 */
@@ -357,12 +380,12 @@ class Loader
 		 */
 		$manufacturers_id = (isset($_GET['manufacturers_id'])) ? $_GET['manufacturers_id'] : '';
 		$tmp_products_id = (isset($_GET['products_id'])) ? (int)$_GET['products_id'] : '';
-		$tmp_pagename = ($this_is_home_page) ? 'index_home' : $this->current_page;
+		$tmp_pagename = ($this->this_is_home_page) ? 'index_home' : $this->current_page;
 		$sheets_array = array('/' . $_SESSION['language'] . '_stylesheet',
 								'/' . $tmp_pagename,
 								'/' . $_SESSION['language'] . '_' . $tmp_pagename,
-	                        '/c_' . $cPath,
-	                        '/' . $_SESSION['language'] . '_c_' . $cPath,
+	                        '/c_' . $this->cPath,
+	                        '/' . $_SESSION['language'] . '_c_' . $this->cPath,
 	                        '/m_' . $manufacturers_id,
 	                        '/' . $_SESSION['language'] . '_m_' . (int)$manufacturers_id,
 	                        '/p_' . $tmp_products_id,
@@ -426,17 +449,17 @@ class Loader
 		/**
 		 * load all page-specific jscript_*.js files from includes/modules/pages/PAGENAME, alphabetically
 		 */
-		$files = $this->template->get_template_part($page_directory, '/^jscript_/', '.js');
+		$files = $this->template->get_template_part($this->page_directory, '/^jscript_/', '.js');
 		foreach ($files as $key => $value) {
-			$this->load(array("$page_directory/$value" => array('type' => 'js')), 'footer');
+			$this->load(array("$this->page_directory/$value" => array('type' => 'js')), 'footer');
 		}
 
 		/**
 		 * include content from all page-specific jscript_*.php files from includes/modules/pages/PAGENAME, alphabetically.
 		 */
-		$files = $this->template->get_template_part($page_directory, '/^jscript_/', '.php');
+		$files = $this->template->get_template_part($this->page_directory, '/^jscript_/', '.php');
 		foreach ($files as $key => $value) {
-			$this->load(array("$page_directory/$value" => array('type' => 'js')), 'footer');
+			$this->load(array("$this->page_directory/$value" => array('type' => 'js')), 'footer');
 		}
 	}
 
@@ -456,8 +479,8 @@ class Loader
 	 */
 	function findAssetsByPattern($extension, $directory, $type, $file_pattern = '')
 	{
-		$templateDir = $this->getAssetDir($extension, $directory, DIR_WS_TEMPLATE);
-		$allFiles = $this->template->get_template_part($templateDir, $file_pattern, $extension);
+		$this->templateDir = $this->getAssetDir($extension, $directory, DIR_WS_TEMPLATE);
+		$allFiles = $this->template->get_template_part($this->templateDir, $file_pattern, $extension);
 
 		if($this->getOption('inheritance') != ''){
 			$defaultDir = $this->getAssetDir($extension, $directory, DIR_WS_TEMPLATES. $this->getOption('inheritance'));
@@ -545,34 +568,34 @@ class Loader
             );
         }
 
-
         return $result;
     }
 
 	// for backward compatibility
-
 	function addLibs ($libs){
-		foreach ($libs as $lib => $option)
+		foreach ($libs as $lib => $versions)
 		{
-			$this->libs[$lib][] = $option;
+            foreach ($versions as $version => $options){
+                if(!isset($this->libs[$lib]))
+                    $this->libs[$lib][$version] = $options;
+            }
 		}
 	}
 
 	function setCurrentPage(){
 		if(!$this->getOption('admin')){
-			global $current_page, $this_is_home_page;
 
 			// set current page
-			if($this_is_home_page)
+			if($this->this_is_home_page)
 			$this->current_page = 'index_home';
-			elseif($current_page == 'index'){
+			elseif($this->current_page == 'index'){
 				if(isset($_GET['cPath']))
 				$this->current_page = 'index_category';
 				elseif(isset($_GET['manufacturers_id']))
 				$this->current_page = 'index_manufacturer';
 			}
 			else
-			$this->current_page = $current_page;
+			$this->current_page = $this->current_page;
 		}
 		else{
 			$this->current_page = preg_replace('/\.php/','',substr(strrchr($_SERVER['PHP_SELF'],'/'),1),1);
@@ -588,9 +611,8 @@ class Loader
 
 	public function loadLoaders()
 	{
-		global $this_is_home_page, $cPath;
-		$template = $this->template;
-		$page_directory = $this->page_directory;;
+		$this->template = $this->template;
+		$this->page_directory = $this->page_directory;;
 
 		if($this->getOption('loaders') == '*')
 		{
