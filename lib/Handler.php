@@ -128,7 +128,7 @@ abstract class Handler{
                     $cache_filename = basename($file) . '.' . md5($file) . '.' . $this->extension;
                     $destination_file = $this->cache_path . $cache_filename;
                     if(!file_exists($destination_file) || !$loader->getOption('cache')){
-                        $cache_file = Plugin::get('riCache.Cache')->write($destination_file, Plugin::get('riCjLoader.MinifyFilter')->filter(array($file), array('minifiers' => array('application/x-javascript' => ''))));                    
+                        $cache_file = Plugin::get('riCache.Cache')->write($destination_file, Plugin::get('riCjLoader.MinifyFilter')->filter(array($file), array('minifiers' => array('application/x-javascript' => ''))));
                     }                   
                     $cache_files[] = $this->host . Plugin::get('riUtility.File')->getRelativePath(DIR_FS_CATALOG, $destination_file);
                 }                

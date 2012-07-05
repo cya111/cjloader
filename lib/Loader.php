@@ -31,6 +31,7 @@ class Loader
     	'dirs' => array(), 
 		'loaders' => '*', 
 	    'load_global' => true,
+        'load_page' => true,
 	    'load_loaders' => true,
 	    'load_print' => true	 		
 	),
@@ -44,13 +45,14 @@ class Loader
 	}
 
     public function setGlobalVariables(){
-        global $page_directory, $request_type, $template, $this_is_home_page, $cPath;
+        global $page_directory, $request_type, $template, $this_is_home_page, $cPath, $current_page;
 
         $this->template = $template;
         $this->page_directory = $page_directory;
         $this->request_type = $request_type;
         $this->this_is_home_page = $this_is_home_page;
         $this->cPath = $cPath;
+        $this->current_page = $current_page;
     }
     
 	function set($options){
@@ -146,6 +148,8 @@ class Loader
 
 		if($this->getOption('load_global')) $this->loadGlobal();
 
+        if($this->getOption('load_page')) $this->loadPage();
+
 		if($this->getOption('load_loaders')) $this->loadLoaders();
 	    
 	    $ordered_files = array();
@@ -190,6 +194,8 @@ class Loader
 		$this->setCurrentPage();
 
 		if($this->getOption('load_global')) $this->loadGlobal();
+
+        if($this->getOption('load_page')) $this->loadPage();
 
 		if($this->getOption('load_loaders')) $this->loadLoaders();
 	    
@@ -375,39 +381,6 @@ class Loader
 		$this->load($files, 'footer');
 
 		/**
-		 * TODO: we shouldn't use $_GET here, it breaks the encapsulation
-		 * load stylesheets on a per-page/per-language/per-product/per-manufacturer/per-category basis. Concept by Juxi Zoza.
-		 */
-		$manufacturers_id = (isset($_GET['manufacturers_id'])) ? $_GET['manufacturers_id'] : '';
-		$tmp_products_id = (isset($_GET['products_id'])) ? (int)$_GET['products_id'] : '';
-		$tmp_pagename = ($this->this_is_home_page) ? 'index_home' : $this->current_page;
-		$sheets_array = array('/' . $_SESSION['language'] . '_stylesheet',
-								'/' . $tmp_pagename,
-								'/' . $_SESSION['language'] . '_' . $tmp_pagename,
-	                        '/c_' . $this->cPath,
-	                        '/' . $_SESSION['language'] . '_c_' . $this->cPath,
-	                        '/m_' . $manufacturers_id,
-	                        '/' . $_SESSION['language'] . '_m_' . (int)$manufacturers_id,
-	                        '/p_' . $tmp_products_id,
-	                        '/' . $_SESSION['language'] . '_p_' . $tmp_products_id
-		);
-
-		foreach ($sheets_array as $key => $value) {
-			$perpagefile = $this->getAssetDir('.css', 'css') . $value . '.css';
-			if (file_exists($perpagefile)) $this->load(array($perpagefile => array('type' => 'css')), 'header');
-
-			$perpagefile = $this->getAssetDir('.php', 'css') . $value . '.php';
-			if (file_exists($perpagefile)) $this->load(array($perpagefile => array('type' => 'css')), 'header');
-
-			$perpagefile = $this->getAssetDir('.js', 'jscript') . $value . '.js';
-			if (file_exists($perpagefile)) $this->load(array($perpagefile => array('type' => 'js')), 'footer');
-
-			$perpagefile = $this->getAssetDir('.php', 'jscript') . $value . '.php';
-			if (file_exists($perpagefile)) $this->load(array($perpagefile => array('type' => 'js')), 'footer');
-
-		}
-
-		/**
 		 * load printer-friendly stylesheets -- named like "print*.css", alphabetically
 		 */
 		if($this->getOption('load_print')) {
@@ -446,22 +419,58 @@ class Loader
 		 }
 		 */
 
-		/**
-		 * load all page-specific jscript_*.js files from includes/modules/pages/PAGENAME, alphabetically
-		 */
-		$files = $this->template->get_template_part($this->page_directory, '/^jscript_/', '.js');
-		foreach ($files as $key => $value) {
-			$this->load(array("$this->page_directory/$value" => array('type' => 'js')), 'footer');
-		}
-
-		/**
-		 * include content from all page-specific jscript_*.php files from includes/modules/pages/PAGENAME, alphabetically.
-		 */
-		$files = $this->template->get_template_part($this->page_directory, '/^jscript_/', '.php');
-		foreach ($files as $key => $value) {
-			$this->load(array("$this->page_directory/$value" => array('type' => 'js')), 'footer');
-		}
 	}
+
+    public function loadPage(){
+        /**
+         * TODO: we shouldn't use $_GET here, it breaks the encapsulation
+         * load stylesheets on a per-page/per-language/per-product/per-manufacturer/per-category basis. Concept by Juxi Zoza.
+         */
+        $manufacturers_id = (isset($_GET['manufacturers_id'])) ? $_GET['manufacturers_id'] : '';
+        $tmp_products_id = (isset($_GET['products_id'])) ? (int)$_GET['products_id'] : '';
+        $tmp_pagename = ($this->this_is_home_page) ? 'index_home' : $this->current_page;
+        $sheets_array = array('/' . $_SESSION['language'] . '_stylesheet',
+            '/' . $tmp_pagename,
+            '/' . $_SESSION['language'] . '_' . $tmp_pagename,
+            '/c_' . $this->cPath,
+            '/' . $_SESSION['language'] . '_c_' . $this->cPath,
+            '/m_' . $manufacturers_id,
+            '/' . $_SESSION['language'] . '_m_' . (int)$manufacturers_id,
+            '/p_' . $tmp_products_id,
+            '/' . $_SESSION['language'] . '_p_' . $tmp_products_id
+        );
+
+        foreach ($sheets_array as $key => $value) {
+            $perpagefile = $this->getAssetDir('.css', 'css') . $value . '.css';
+            if (file_exists($perpagefile)) $this->load(array($perpagefile => array('type' => 'css')), 'header');
+
+            $perpagefile = $this->getAssetDir('.php', 'css') . $value . '.php';
+            if (file_exists($perpagefile)) $this->load(array($perpagefile => array('type' => 'css')), 'header');
+
+            $perpagefile = $this->getAssetDir('.js', 'jscript') . $value . '.js';
+            if (file_exists($perpagefile)) $this->load(array($perpagefile => array('type' => 'js')), 'footer');
+
+            $perpagefile = $this->getAssetDir('.php', 'jscript') . $value . '.php';
+            if (file_exists($perpagefile)) $this->load(array($perpagefile => array('type' => 'js')), 'footer');
+
+        }
+
+        /**
+         * load all page-specific jscript_*.js files from includes/modules/pages/PAGENAME, alphabetically
+         */
+        $files = $this->template->get_template_part($this->page_directory, '/^jscript_/', '.js');
+        foreach ($files as $key => $value) {
+            $this->load(array("$this->page_directory/$value" => array('type' => 'js')), 'footer');
+        }
+
+        /**
+         * include content from all page-specific jscript_*.php files from includes/modules/pages/PAGENAME, alphabetically.
+         */
+        $files = $this->template->get_template_part($this->page_directory, '/^jscript_/', '.php');
+        foreach ($files as $key => $value) {
+            $this->load(array("$this->page_directory/$value" => array('type' => 'js')), 'footer');
+        }
+    }
 
 	/**
 	 * Get asset directory
@@ -594,8 +603,6 @@ class Loader
 				elseif(isset($_GET['manufacturers_id']))
 				$this->current_page = 'index_manufacturer';
 			}
-			else
-			$this->current_page = $this->current_page;
 		}
 		else{
 			$this->current_page = preg_replace('/\.php/','',substr(strrchr($_SERVER['PHP_SELF'],'/'),1),1);
