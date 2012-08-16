@@ -11,8 +11,10 @@ riCjLoader is a product of RubikIntegration.com. The plugin/module is meant for 
 
 *prerequisites* 
 
-you MUST HAVE our Zencart's Plugin Framework (ZePLUF) installed before you can use this plugin. If you don't have, please use the master branch of this module which is meant for those who do not have ZePLUF
+you MUST HAVE our Zencart's Plugin Framework (ZePLUF) installed before you can use this plugin:
 https://github.com/yellow1912/ZenCartPluginFramework
+
+If you don't have ZePLUF, please use the master branch of this module which is meant for those who do not have ZePLUF
 
 Installation is extremely easy:
 - Simply drop this plugin into the plugins/ folder (which you should have if you installed ZePLUF

@@ -22,4 +22,8 @@ class RiCjLoader extends PluginCore{
         // extend here the functionality of the core
         // ...
     }
+
+    public function install(){
+        Plugin::get('riUtility.File')->mkDir(Plugin::get('settings')->get('riCjLoader.cache_path'));
+    }
 }
