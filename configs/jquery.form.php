@@ -18,8 +18,15 @@ $libs['jquery.form'] = array(
 	'3.09' => array(
 		'jscript_files' => array(
 			'form.js' => array(
-				'local' => 'form.js', 
+				'local' => 'form.js',
 			)
 		)
-	)
+	),
+    '3.14' => array(
+        'jscript_files' => array(
+            'form.js' => array(
+                'local' => 'form.js',
+            )
+        )
+    )
 );
