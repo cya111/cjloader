@@ -141,7 +141,7 @@ class Loader
 	 * Inject the assets into the content of the page
 	 * @param string $content
 	 */
-	public function injectAssets(&$content){		
+	public function injectAssets(&$content){
 
 	    // set the correct base
 		$this->setCurrentPage();
@@ -355,7 +355,7 @@ class Loader
 		return $pos;
 	}
 
-	public function loadGlobal(){        
+	public function loadGlobal(){
 		/**
 		 * load all template-specific stylesheets, named like "style*.css", alphabetically
 		 */
