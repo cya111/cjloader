@@ -297,7 +297,8 @@ class Loader
 									{
                                         if(strpos($css_file_options['local'], "::") !== false){
                                             $local = explode("::", $css_file_options['local']);
-                                            $file = __DIR__ . '/../../' . $local[0] . '/content/resources/' . $lib . '/' . $lib_version . '/' . (!empty($local[1]) ? $local[1] : $css_file);
+                                            if(empty($local[1])) $local[1] = $css_file;
+                                            $file = $this->findAsset($local[0] . '::' . $lib . '/' . $lib_version . '/' . $local[1]);
                                         }
                                         else
 										    $file = __DIR__ . '/../content/resources/' . $lib . '/' . $lib_version . '/' . (!empty($css_file_options['local']) ? $css_file_options['local'] : $css_file);
@@ -316,7 +317,8 @@ class Loader
 									{
                                         if(strpos($jscript_file_options['local'], "::") !== false){
                                             $local = explode("::", $jscript_file_options['local']);
-                                            $file = __DIR__ . '/../../' . $local[0] . '/content/resources/' . $lib . '/' . $lib_version . '/' . (!empty($local[1]) ? $local[1] : $jscript_file);
+                                            if(empty($local[1])) $local[1] = $jscript_file;
+                                            $file = $this->findAsset($local[0] . '::' . $lib . '/' . $lib_version . '/' . $local[1]);
                                         }
                                         else
 										    $file = __DIR__ . '/../content/resources/' . $lib . '/' . $lib_version . '/' . (!empty($jscript_file_options['local']) ? $jscript_file_options['local'] : $jscript_file);
@@ -515,54 +517,60 @@ class Loader
 
 		$list = array();
 		foreach ($files as $file => $options) {
-			$error = false; $include = false; $external = false;
-			// plugin?
-			if(strpos($file, '::') !== false){
-				$file = explode('::', $file);
-
-				if(!file_exists($path = DIR_FS_CATALOG . DIR_WS_TEMPLATE . 'plugins/' . $file[0] . '/resources/' . $file[1]))
-				if(!file_exists($path = DIR_FS_CATALOG . 'plugins/' . $file[0] . '/content/resources/' . $file[1]))
-				$error = true;
-			}
-			// inline?
-			elseif(!empty($options['inline'])){
-				$path = $file;
-			}
-			else{
-				// external?
-				if($this->strposArray($file, $this->options['supported_externals']) !== false){
-					$path = $file;
-					$external = true;
-				}
-				else{
-					$error = true;
-					// can we find the path?
-					foreach($this->getOption('dirs') as $dir){
-						$path = str_replace('%type%', $this->getHandler($options['type'])->getTemplateBaseDir(), $dir) . $file;
-						if(file_exists(DIR_FS_CATALOG . $path)){
-							$error = false;
-							break;
-						}
-					}
-
-					//
-					if($error && file_exists($path = $file)) $error = false;
-				}
-			}
-
-			 
-			if(!$error){
-				$options['external'] = $external;
-				$list[$path] = $options;
-			}
-			else
-			{
-				// some kind of error logging here
-			}
+            $path = $this->findAsset($file, $options);
+            if(!empty($path)) $list[$path] =  $options;
 		}
 		return $list;
 	}
 
+    public function findAsset($file, &$options = array()){
+        $error = false; $external = false; $path = '';
+
+        // plugin?
+        if(strpos($file, '::') !== false){
+            $file = explode('::', $file);
+
+            if(!file_exists($path = DIR_FS_CATALOG . DIR_WS_TEMPLATE . 'plugins/' . $file[0] . '/resources/' . $file[1]))
+                if(!file_exists($path = DIR_FS_CATALOG . 'plugins/' . $file[0] . '/content/resources/' . $file[1]))
+                    $error = true;
+        }
+        // inline?
+        elseif(!empty($options['inline'])){
+            $path = $file;
+        }
+        else{
+            // external?
+            if($this->strposArray($file, $this->options['supported_externals']) !== false){
+                $path = $file;
+                $external = true;
+            }
+            else{
+                $error = true;
+                // can we find the path?
+                foreach($this->getOption('dirs') as $dir){
+                    $path = str_replace('%type%', $this->getHandler($options['type'])->getTemplateBaseDir(), $dir) . $file;
+                    if(file_exists(DIR_FS_CATALOG . $path)){
+                        $error = false;
+                        break;
+                    }
+                }
+
+                //
+                if($error && file_exists($path = $file)) $error = false;
+            }
+        }
+
+
+        if(!$error){
+            $options['external'] = $external;
+        }
+        else
+        {
+            // some kind of error logging here
+        }
+
+        return $path;
+    }
     /**
      * @param array $files
      * @return array
