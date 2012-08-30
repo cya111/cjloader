@@ -563,14 +563,14 @@ class Loader
 
         if(!$error){
             $options['external'] = $external;
+            return $path;
         }
         else
         {
-            // some kind of error logging here
+            return '';// some kind of error logging here
         }
-
-        return $path;
     }
+
     /**
      * @param array $files
      * @return array
