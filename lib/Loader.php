@@ -530,7 +530,7 @@ class Loader
         if(strpos($file, '::') !== false){
             $file = explode('::', $file);
 
-            if(!file_exists($path = DIR_FS_CATALOG . DIR_WS_TEMPLATE . 'plugins/' . $file[0] . '/resources/' . $file[1]))
+            if(!file_exists($path = DIR_FS_CATALOG . DIR_WS_TEMPLATE . 'plugins/' . $file[0] . '/content/resources/' . $file[1]))
                 if(!file_exists($path = DIR_FS_CATALOG . 'plugins/' . $file[0] . '/content/resources/' . $file[1]))
                     $error = true;
         }
