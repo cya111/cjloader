@@ -141,7 +141,7 @@ class Loader
 	 * Inject the assets into the content of the page
 	 * @param string $content
 	 */
-	public function injectAssets(&$content){
+	public function injectAssets($content){
 
 	    // set the correct base
 		$this->setCurrentPage();
@@ -187,6 +187,7 @@ class Loader
 				}
 			}
 		}
+        return $content;
 	}
 
 	public function getAssetsArray(){

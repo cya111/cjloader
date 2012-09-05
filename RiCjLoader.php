@@ -17,8 +17,7 @@ class RiCjLoader extends PluginCore{
     
 	public function onPageEnd(Event $event)
     {
-    	$content = &$event->getContent();
-    	Plugin::get('riCjLoader.Loader')->injectAssets($content);
+    	$event->setContent(Plugin::get('riCjLoader.Loader')->injectAssets($event->getContent()));
         // extend here the functionality of the core
         // ...
     }
