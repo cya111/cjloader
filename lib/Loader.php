@@ -115,7 +115,7 @@ class Loader
 		$this->getHandler($options['type'])->load($files, $file, $location, $options);
 	}
 	
-	public function startInline($type, $location = ''){
+	public function startInline($type = 'js', $location = ''){
 	    if($location !== 'header' && $location !== 'footer'){
             if(empty($location)) $location = $this->location;
             //if(!isset($this->files[$location]))
