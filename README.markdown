@@ -36,9 +36,11 @@ Delete everything below until you find:
 
 *Loading from within any template file*
 
-`$riview->get('loader')->load(array($array_of_files_to_load), $location)`
+`$riview->get('loader')->load(array($array_of_files_to_load), $location, $silent)`
 
-`$location` is optional, you can pass in "head", "footer", or nothing at all. Note that CSS files will ALWAYS be loaded at head.a
+`$location` is optional, you can pass in "head", "footer", or nothing at all. Note that CSS files will ALWAYS be loaded at head.
+
+`$silent` is optional, you can pass in boolean value, the default value is false. This parameter allows you to tell cjloader to not print out the loader holder at that specific location, more on this will be explained later.
 
 *The correct format of the $array_of_files_to_load*
 
@@ -48,9 +50,9 @@ The array after each filename is optional, usually only needed if you want to lo
 
 Notes:
 - Files may not get loaded at the exact location, the loader may decide to load the files at a position further down if possible.
-- Files will be loaded in the EXACT order given in the array. For example, if you pass in array('jquery.js', 'jquery.ui.js') then the jquery.js will be loaded BEFORE jquery.ui.js.
+- Files will be loaded in the EXACT order given in the array. For example, if you pass in array('abc.js', 'def.js') then the abc.js will be loaded BEFORE def.js.
 - If a file is asked to be loaded more than once by multiple plugins/template files it will only be loaded ONCE at the earliest possible location to make sure it's available for others to use.
-- If, at one location, you need to load a file say my_file.js and this file REQUIRES jquery.js to run then you should ALWAYS put jquery.js in the load list as well (even if you may know that jquery.js has been requested before). Don't worry, the loader will do the hard work and decide the location to load for you, and it will only load a file ONCE.
+- If, at one location, you need to load a file say my_file.js and this file REQUIRES abc.lib js run then you should ALWAYS put abc.js in the load list as well (even if you may know that jquery.js has been requested before). Don't worry, the loader will do the hard work and decide the location to load for you, and it will only load a file ONCE.
 
 *Loading inline css/js*
 

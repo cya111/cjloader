@@ -21,7 +21,7 @@
 		</author>
 	</authors>
 	<released>May 10th 2012</released>
-	<release>1.0</release>
+	<release>1.0.1</release>
 	<license uri="http://www.symfony-project.org/license">MIT license</license>
 	<dependencies>
   		<required>
@@ -37,6 +37,16 @@
    		</plugins>
 	</dependencies>
 	<changelog>
+	<release>
+   			<version>
+    			<release>1.0.1</release>    			
+   			</version>
+   			<license uri="http://www.symfony-project.com/license">MIT license</license>
+   			<released>May 20th 2012</released>
+   			<notes>
+				* bug fixes
+   			</notes>
+  		</release>
   		<release>
    			<version>
     			<release>1.0.0</release>    			
