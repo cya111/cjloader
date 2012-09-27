@@ -706,4 +706,24 @@ class Loader
             }
         }
     }
+
+    /**
+     * we put the browser methods here because we want to users to be able to easily access
+     * it within templates
+     */
+
+    /**
+     * @param $browser_name
+     * @return boolean
+     */
+    public function isBrowser($browser_name){
+        return Plugin::get('riCjLoader.' . $this->options['browser_handler'])->isBrowser($browser_name);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getBrowserVersion(){
+        return Plugin::get('riCjLoader.' . $this->options['browser_handler'])->getVersion();
+    }
 }

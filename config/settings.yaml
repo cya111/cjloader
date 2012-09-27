@@ -5,3 +5,4 @@ combine: false
 load_global: true
 load_loaders: true
 supported_externals: ['http', 'https', '//']
+browser_handler: BrowserHandler
